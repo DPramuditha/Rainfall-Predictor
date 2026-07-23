@@ -1,0 +1,14 @@
+{
+  "name": "rainfall_predictor",
+  "version": "1.0.0",
+  "description": "Rainfall Predictor Django Web Application",
+  "scripts": {
+    "build:css": "npx @tailwindcss/cli -i ./predictor/static/css/input.css -o ./predictor/static/css/output.css",
+    "watch:css": "npx @tailwindcss/cli -i ./predictor/static/css/input.css -o ./predictor/static/css/output.css --watch"
+  },
+  "dependencies": {
+    "@tailwindcss/cli": "^4.0.0",
+    "gsap": "^3.12.5",
+    "tailwindcss": "^4.0.0"
+  }
+}
