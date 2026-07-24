@@ -2,12 +2,25 @@
 @source "../templates/**/*.html";
 
 @layer base {
-  body {
+  html, body {
+    scroll-behavior: auto !important;
+    overscroll-behavior-y: none;
     font-family: 'Nunito', 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     background-color: #f8fafc;
     color: #0f172a;
     min-height: 100vh;
   }
+
+  #smooth-content {
+    will-change: transform;
+  }
+}
+
+/* Ambient Background Highlights Utility */
+.ambient-glow {
+  will-change: transform, opacity;
+  pointer-events: none;
+  transform-gpu: translate3d(0, 0, 0);
 }
 
 /* Light Theme Card & Input Utilities */
