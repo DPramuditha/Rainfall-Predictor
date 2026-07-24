@@ -4,29 +4,96 @@
 {% block title %}Rainfall Prediction Form &bull; RainfallPredict AI{% endblock %}
 
 {% block content %}
-<div class="max-w-5xl mx-auto px-6 py-10">
+<div class="max-w-6xl mx-auto px-4 md:px-6 py-8 md:py-10">
 
-  <!-- Header Banner -->
-  <div id="hero-banner" class="white-card rounded-2xl p-8 mb-8 border border-slate-200 shadow-sm relative overflow-hidden">
-    <div class="absolute right-0 top-0 translate-x-8 -translate-y-8 pointer-events-none opacity-10">
-      <svg class="w-72 h-72 text-sky-600" fill="currentColor" viewBox="0 0 24 24">
-        <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" />
-      </svg>
+  <!-- Header Banner (Full Width Top) -->
+  <div id="hero-banner" class="white-card rounded-2xl p-6 md:p-8 mb-8 border border-slate-200 shadow-sm relative overflow-hidden transition-all duration-700">
+    <!-- Background Watermark Animated Weather Icons -->
+    <div class="absolute right-0 top-0 translate-x-5 -translate-y-5 pointer-events-none opacity-10">
+      <div class="w-72 h-72 relative flex items-center justify-center">
+        <!-- SVG 1: cloud-sun-rain -->
+        <svg class="hero-bg-icon-slide absolute inset-0 w-72 h-72 text-sky-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 2v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="M20 12h2"/><path d="m19.07 4.93-1.41 1.41"/><path d="M15.947 12.65a4 4 0 0 0-5.925-4.128"/><path d="M3 20a5 5 0 1 1 8.9-4H13a3 3 0 0 1 2 5.24"/><path d="M11 20v2"/><path d="M7 19v2"/>
+        </svg>
+        <!-- SVG 2: cloud-sun -->
+        <svg class="hero-bg-icon-slide absolute inset-0 w-72 h-72 text-amber-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 2v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="M20 12h2"/><path d="m19.07 4.93-1.41 1.41"/><path d="M15.947 12.65a4 4 0 0 0-5.925-4.128"/><path d="M13 22H7a5 5 0 1 1 4.9-6H13a3 3 0 0 1 0 6Z"/>
+        </svg>
+        <!-- SVG 3: cloud-rain-wind -->
+        <svg class="hero-bg-icon-slide absolute inset-0 w-72 h-72 text-blue-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242"/><path d="m9.2 22 3-7"/><path d="m9 13-3 7"/><path d="m17 13-3 7"/>
+        </svg>
+        <!-- SVG 4: cloud-moon-rain -->
+        <svg class="hero-bg-icon-slide absolute inset-0 w-72 h-72 text-indigo-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M11 20v2"/><path d="M18.376 14.512a6 6 0 0 0 3.461-4.127c.148-.625-.659-.97-1.248-.714a4 4 0 0 1-5.259-5.26c.255-.589-.09-1.395-.716-1.248a6 6 0 0 0-4.594 5.36"/><path d="M3 20a5 5 0 1 1 8.9-4H13a3 3 0 0 1 2 5.24"/><path d="M7 19v2"/>
+        </svg>
+      </div>
     </div>
     
-    <div class="max-w-2xl">
+    <div class="max-w-2xl text-center mx-auto">
+      <!-- Animated Weather Icon Badge -->
+      <div class="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-tr from-sky-50 to-blue-100 border border-sky-200/80 shadow-xs flex items-center justify-center p-3 relative overflow-hidden">
+        <div id="hero-icon-slider" class="w-10 h-10 relative flex items-center justify-center">
+          <!-- SVG 1: cloud-sun-rain -->
+          <svg class="hero-icon-slide absolute inset-0 w-10 h-10 text-sky-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 2v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="M20 12h2"/><path d="m19.07 4.93-1.41 1.41"/><path d="M15.947 12.65a4 4 0 0 0-5.925-4.128"/><path d="M3 20a5 5 0 1 1 8.9-4H13a3 3 0 0 1 2 5.24"/><path d="M11 20v2"/><path d="M7 19v2"/>
+          </svg>
+          <!-- SVG 2: cloud-sun -->
+          <svg class="hero-icon-slide absolute inset-0 w-10 h-10 text-amber-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 2v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="M20 12h2"/><path d="m19.07 4.93-1.41 1.41"/><path d="M15.947 12.65a4 4 0 0 0-5.925-4.128"/><path d="M13 22H7a5 5 0 1 1 4.9-6H13a3 3 0 0 1 0 6Z"/>
+          </svg>
+          <!-- SVG 3: cloud-rain-wind -->
+          <svg class="hero-icon-slide absolute inset-0 w-10 h-10 text-blue-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242"/><path d="m9.2 22 3-7"/><path d="m9 13-3 7"/><path d="m17 13-3 7"/>
+          </svg>
+          <!-- SVG 4: cloud-moon-rain -->
+          <svg class="hero-icon-slide absolute inset-0 w-10 h-10 text-indigo-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M11 20v2"/><path d="M18.376 14.512a6 6 0 0 0 3.461-4.127c.148-.625-.659-.97-1.248-.714a4 4 0 0 1-5.259-5.26c.255-.589-.09-1.395-.716-1.248a6 6 0 0 0-4.594 5.36"/><path d="M3 20a5 5 0 1 1 8.9-4H13a3 3 0 0 1 2 5.24"/><path d="M7 19v2"/>
+          </svg>
+        </div>
+      </div>
       <span class="inline-block text-xs font-bold uppercase tracking-wider text-sky-600 bg-sky-50 border border-sky-200 px-3 py-1 rounded-full mb-3">
         Weather Forecast ML Model
       </span>
-      <h1 class="font-Nunito text-3xl md:text-4xl font-extrabold text-slate-900 mb-3 tracking-tight">
-        Rainfall Prediction Tool
+      <h1 id="rolling-title" class="font-outfit text-3xl md:text-4xl font-extrabold text-slate-900 mb-3 tracking-tight flex flex-wrap justify-center items-center gap-x-2.5 overflow-hidden py-1 cursor-pointer select-none" aria-label="Rainfall Prediction Tool">
+        <!-- Word 1: Rainfall -->
+        <span class="inline-flex overflow-hidden py-0.5">
+          <span class="roll-char inline-block">R</span>
+          <span class="roll-char inline-block">a</span>
+          <span class="roll-char inline-block">i</span>
+          <span class="roll-char inline-block">n</span>
+          <span class="roll-char inline-block">f</span>
+          <span class="roll-char inline-block">a</span>
+          <span class="roll-char inline-block">l</span>
+          <span class="roll-char inline-block">l</span>
+        </span>
+        <!-- Word 2: Prediction -->
+        <span class="inline-flex overflow-hidden py-0.5">
+          <span class="roll-char inline-block">P</span>
+          <span class="roll-char inline-block">r</span>
+          <span class="roll-char inline-block">e</span>
+          <span class="roll-char inline-block">d</span>
+          <span class="roll-char inline-block">i</span>
+          <span class="roll-char inline-block">c</span>
+          <span class="roll-char inline-block">t</span>
+          <span class="roll-char inline-block">i</span>
+          <span class="roll-char inline-block">o</span>
+          <span class="roll-char inline-block">n</span>
+        </span>
+        <!-- Word 3: Tool -->
+        <span class="inline-flex overflow-hidden py-0.5">
+          <span class="roll-char inline-block text-sky-600">T</span>
+          <span class="roll-char inline-block text-sky-600">o</span>
+          <span class="roll-char inline-block text-sky-600">o</span>
+          <span class="roll-char inline-block text-sky-600">l</span>
+        </span>
       </h1>
       <p class="text-slate-600 text-sm md:text-base leading-relaxed">
         Enter meteorological measurements below to calculate the probability of rainfall using our trained XGBoost classifier model.
       </p>
 
       <!-- Preset Quick Buttons -->
-      <div class="mt-6 flex flex-wrap gap-2 items-center">
+      <div class="mt-6 flex flex-wrap gap-2 items-center justify-center">
         <span class="text-xs font-semibold text-slate-500 mr-1">Quick Presets:</span>
         <button type="button" onclick="loadPreset('rainy')" class="text-xs font-medium bg-sky-50 text-sky-700 hover:bg-sky-100 border border-sky-200 px-3 py-1.5 rounded-lg transition-colors cursor-pointer">
           🌧️ High Rainfall Scenario
@@ -38,12 +105,13 @@
     </div>
   </div>
 
-  <div class="grid lg:grid-cols-12 gap-8">
-
-    <!-- Prediction Form -->
-    <div class="lg:col-span-7">
-      <div id="form-card" class="white-card rounded-2xl p-6 border border-slate-200 shadow-sm">
-        <h2 class="font-Nunito text-xl font-bold text-slate-900 mb-6 flex items-center">
+  <!-- Side-by-Side Split Layout Grid -->
+  <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+    
+    <!-- LEFT SIDE: Meteorological Inputs Form -->
+    <div id="form-section" class="lg:col-span-7 transition-all duration-500">
+      <div id="form-card" class="white-card rounded-2xl p-6 md:p-8 border border-slate-200 shadow-sm transition-all">
+        <h2 class="font-outfit text-xl font-bold text-slate-900 mb-6 flex items-center">
           <svg class="w-5 h-5 text-sky-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
           </svg>
@@ -158,7 +226,7 @@
             </div>
           </div>
 
-          <button type="submit" id="submit-btn" class="w-full btn-primary font-Nunito font-semibold py-3.5 px-6 rounded-xl flex items-center justify-center space-x-2 text-base cursor-pointer">
+          <button type="submit" id="submit-btn" class="w-full btn-primary font-outfit font-semibold py-3.5 px-6 rounded-xl flex items-center justify-center space-x-2 text-base cursor-pointer">
             <span id="btn-text">Predict Rainfall</span>
             <svg id="btn-spinner" class="hidden animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
               <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
@@ -169,80 +237,16 @@
       </div>
     </div>
 
-    <!-- Prediction Output & Information Panel -->
-    <div class="lg:col-span-5">
-      <div id="results-card" class="white-card rounded-2xl p-6 border border-slate-200 shadow-sm sticky top-24">
-        <h2 class="font-Nunito text-xl font-bold text-slate-900 mb-4 flex items-center">
-          <svg class="w-5 h-5 text-sky-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-          </svg>
-          Prediction Results
-        </h2>
-
-        <!-- Placeholder when no prediction made -->
-        <div id="result-placeholder" class="py-12 text-center border-2 border-dashed border-slate-200 rounded-xl">
-          <div class="w-14 h-14 bg-sky-50 text-sky-500 rounded-full flex items-center justify-center mx-auto mb-3">
-            🌧️
-          </div>
-          <p class="font-semibold text-slate-700 text-sm">Ready for Prediction</p>
-          <p class="text-xs text-slate-400 mt-1 max-w-xs mx-auto">Fill out the parameters and click 'Predict Rainfall' to run the XGBoost model.</p>
-        </div>
-
-        <!-- Result Container -->
-        <div id="result-content" class="hidden space-y-6">
-          
-          <!-- Primary Verdict Badge -->
-          <div id="verdict-banner" class="p-5 rounded-xl text-center border transition-all">
-            <div id="verdict-icon" class="text-4xl mb-2"></div>
-            <h3 id="verdict-title" class="font-Nunito text-2xl font-extrabold mb-1"></h3>
-            <p id="verdict-subtitle" class="text-xs font-medium"></p>
-          </div>
-
-          <!-- Probability Meter Bar -->
-          <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
-            <div class="flex justify-between items-center text-xs font-bold mb-2 text-slate-700">
-              <span>Rain Probability</span>
-              <span id="prob-percentage-text" class="text-sky-600 text-sm">0%</span>
-            </div>
-            <div class="w-full bg-slate-200 rounded-full h-3.5 overflow-hidden p-0.5">
-              <div id="prob-progress-bar" class="bg-gradient-to-r from-sky-500 to-blue-600 h-full rounded-full w-0 transition-all duration-700"></div>
-            </div>
-            <div class="flex justify-between text-[11px] text-slate-400 mt-2">
-              <span>Dry (0%)</span>
-              <span>Certain Rain (100%)</span>
-            </div>
-          </div>
-
-          <!-- Key Metrics -->
-          <div class="grid grid-cols-2 gap-3 text-xs">
-            <div class="bg-slate-50 p-3 rounded-lg border border-slate-200">
-              <span class="text-slate-400 block">Rain Likelihood</span>
-              <span id="metric-rain-prob" class="font-bold text-slate-800 text-sm">-</span>
-            </div>
-            <div class="bg-slate-50 p-3 rounded-lg border border-slate-200">
-              <span class="text-slate-400 block">Dry Likelihood</span>
-              <span id="metric-norain-prob" class="font-bold text-slate-800 text-sm">-</span>
-            </div>
-          </div>
-
-          <!-- Recommendation Note -->
-          <div class="p-4 rounded-xl bg-sky-50/70 border border-sky-100 text-xs text-slate-600 flex items-start space-x-3">
-            <span class="text-sky-500 text-base">💡</span>
-            <div>
-              <span class="font-semibold text-slate-800 block mb-0.5">Automated Feature Engineering</span>
-              Model computed derived metrics (Temp Range, Dewpoint Depression, Humidity/Cloud Interaction, Cyclical Day Encodings) automatically.
-            </div>
-          </div>
-
-        </div>
-
-      </div>
+    <!-- RIGHT SIDE: Prediction Results Panel -->
+    <div id="results-column" class="lg:col-span-5 lg:sticky lg:top-24 transition-all duration-500">
+      {% include 'predictor/results.html' %}
     </div>
 
   </div>
+
 </div>
 {% endblock %}
 
 {% block extra_scripts %}
-<script src="{% static 'js/main.js' %}"></script>
+<script src="{% static 'js/main.js' %}?v=11"></script>
 {% endblock %}

@@ -2,12 +2,25 @@
 @source "../templates/**/*.html";
 
 @layer base {
-  body {
+  html, body {
+    scroll-behavior: auto !important;
+    overscroll-behavior-y: none;
     font-family: 'Nunito', 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     background-color: #f8fafc;
     color: #0f172a;
     min-height: 100vh;
   }
+
+  #smooth-content {
+    will-change: transform;
+  }
+}
+
+/* Ambient Background Highlights Utility */
+.ambient-glow {
+  will-change: transform, opacity;
+  pointer-events: none;
+  transform-gpu: translate3d(0, 0, 0);
 }
 
 /* Light Theme Card & Input Utilities */
@@ -55,4 +68,72 @@
   background: #f0fdf4;
   border: 1px solid #bbf7d0;
   color: #15803d;
+}
+
+/* Transitions.dev — Notification badge */
+:root {
+  --badge-slide-dur: 260ms;
+  --badge-pop-dur: 500ms;
+  --badge-pop-close-dur: 180ms;
+  --badge-fade-dur: 400ms;
+  --badge-fade-close-dur: 180ms;
+  --badge-blur: 2px;
+  --badge-offset-x: -8.2px;
+  --badge-offset-y: 12.4px;
+  --badge-slide-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --badge-pop-ease: cubic-bezier(0.34, 1.36, 0.64, 1);
+  --badge-close-ease: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes t-badge-slide-in {
+  from { transform: translate(var(--badge-offset-x), var(--badge-offset-y)); }
+  to   { transform: translate(0, 0); }
+}
+
+.t-badge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  pointer-events: none;
+  will-change: transform;
+}
+.t-badge[data-open="true"] {
+  animation: t-badge-slide-in var(--badge-slide-dur) var(--badge-slide-ease);
+}
+
+.t-badge-dot {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 4px;
+  border-radius: 9999px;
+  background-color: #ef4444;
+  color: #ffffff;
+  font-size: 10px;
+  font-weight: 700;
+  transform-origin: center;
+  transform: scale(1);
+  opacity: 1;
+  filter: blur(0);
+  box-shadow: 0 0 0 2px #ffffff;
+  transition:
+    transform var(--badge-pop-dur)  var(--badge-pop-ease),
+    opacity   var(--badge-fade-dur) var(--badge-pop-ease),
+    filter    var(--badge-pop-dur)  var(--badge-pop-ease);
+  will-change: transform, opacity, filter;
+}
+.t-badge[data-open="false"] .t-badge-dot {
+  transform: scale(0);
+  opacity: 0;
+  filter: blur(var(--badge-blur));
+  transition:
+    transform var(--badge-pop-close-dur)  var(--badge-close-ease),
+    opacity   var(--badge-fade-close-dur) var(--badge-close-ease),
+    filter    var(--badge-pop-close-dur)  var(--badge-close-ease);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .t-badge, .t-badge-dot { animation: none !important; transition: none !important; }
 }
