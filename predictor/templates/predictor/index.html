@@ -4,242 +4,174 @@
 {% block title %}Rainfall Prediction Form &bull; RainfallPredict AI{% endblock %}
 
 {% block content %}
-<div class="max-w-5xl mx-auto px-6 py-10">
+<div class="max-w-3xl mx-auto px-6 py-10">
 
-  <!-- Header Banner -->
-  <div id="hero-banner" class="white-card rounded-2xl p-8 mb-8 border border-slate-200 shadow-sm relative overflow-hidden">
-    <div class="absolute right-0 top-0 translate-x-8 -translate-y-8 pointer-events-none opacity-10">
-      <svg class="w-72 h-72 text-sky-600" fill="currentColor" viewBox="0 0 24 24">
-        <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" />
-      </svg>
-    </div>
+  <!-- FORM SECTION (Displayed Centered Initially, Hidden when Prediction Result is active) -->
+  <div id="form-section" class="transition-all duration-500">
     
-    <div class="max-w-2xl">
-      <span class="inline-block text-xs font-bold uppercase tracking-wider text-sky-600 bg-sky-50 border border-sky-200 px-3 py-1 rounded-full mb-3">
-        Weather Forecast ML Model
-      </span>
-      <h1 class="font-Nunito text-3xl md:text-4xl font-extrabold text-slate-900 mb-3 tracking-tight">
-        Rainfall Prediction Tool
-      </h1>
-      <p class="text-slate-600 text-sm md:text-base leading-relaxed">
-        Enter meteorological measurements below to calculate the probability of rainfall using our trained XGBoost classifier model.
-      </p>
-
-      <!-- Preset Quick Buttons -->
-      <div class="mt-6 flex flex-wrap gap-2 items-center">
-        <span class="text-xs font-semibold text-slate-500 mr-1">Quick Presets:</span>
-        <button type="button" onclick="loadPreset('rainy')" class="text-xs font-medium bg-sky-50 text-sky-700 hover:bg-sky-100 border border-sky-200 px-3 py-1.5 rounded-lg transition-colors cursor-pointer">
-          🌧️ High Rainfall Scenario
-        </button>
-        <button type="button" onclick="loadPreset('dry')" class="text-xs font-medium bg-amber-50 text-amber-700 hover:bg-amber-100 border border-amber-200 px-3 py-1.5 rounded-lg transition-colors cursor-pointer">
-          ☀️ Sunny Dry Scenario
-        </button>
+    <!-- Header Banner -->
+    <div id="hero-banner" class="white-card rounded-2xl p-8 mb-8 border border-slate-200 shadow-sm relative overflow-hidden transition-all duration-700">
+      <div class="absolute right-0 top-0 translate-x-8 -translate-y-8 pointer-events-none opacity-10">
+        <svg class="w-72 h-72 text-sky-600" fill="currentColor" viewBox="0 0 24 24">
+          <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" />
+        </svg>
       </div>
-    </div>
-  </div>
+      
+      <div class="max-w-2xl text-center mx-auto">
+        <span class="inline-block text-xs font-bold uppercase tracking-wider text-sky-600 bg-sky-50 border border-sky-200 px-3 py-1 rounded-full mb-3">
+          Weather Forecast ML Model
+        </span>
+        <h1 class="font-outfit text-3xl md:text-4xl font-extrabold text-slate-900 mb-3 tracking-tight">
+          Rainfall Prediction Tool
+        </h1>
+        <p class="text-slate-600 text-sm md:text-base leading-relaxed">
+          Enter meteorological measurements below to calculate the probability of rainfall using our trained XGBoost classifier model.
+        </p>
 
-  <div class="grid lg:grid-cols-12 gap-8">
-
-    <!-- Prediction Form -->
-    <div class="lg:col-span-7">
-      <div id="form-card" class="white-card rounded-2xl p-6 border border-slate-200 shadow-sm">
-        <h2 class="font-Nunito text-xl font-bold text-slate-900 mb-6 flex items-center">
-          <svg class="w-5 h-5 text-sky-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
-          </svg>
-          Meteorological Inputs
-        </h2>
-
-        <form id="prediction-form" method="POST" action="." class="space-y-6">
-          {% csrf_token %}
-
-          <!-- Group 1: General & Pressure -->
-          <div>
-            <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3 border-b border-slate-100 pb-1">
-              General & Atmospheric
-            </h3>
-            <div class="grid grid-cols-2 gap-4">
-              <div>
-                <label for="id_day" class="block text-xs font-semibold text-slate-700 mb-1">
-                  Day of Year <span class="text-slate-400 font-normal">(1 - 365)</span>
-                </label>
-                <input type="number" step="1" min="1" max="365" name="day" id="id_day" value="{{ form_data.day }}" required class="w-full rounded-lg px-3 py-2 text-sm custom-input">
-              </div>
-
-              <div>
-                <label for="id_pressure" class="block text-xs font-semibold text-slate-700 mb-1">
-                  Pressure <span class="text-slate-400 font-normal">(hPa)</span>
-                </label>
-                <input type="number" step="0.1" name="pressure" id="id_pressure" value="{{ form_data.pressure }}" required class="w-full rounded-lg px-3 py-2 text-sm custom-input">
-              </div>
-            </div>
-          </div>
-
-          <!-- Group 2: Temperature & Moisture -->
-          <div>
-            <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3 border-b border-slate-100 pb-1">
-              Temperature & Dew Point
-            </h3>
-            <div class="grid grid-cols-3 gap-4 mb-4">
-              <div>
-                <label for="id_temparature" class="block text-xs font-semibold text-slate-700 mb-1">
-                  Temp <span class="text-slate-400 font-normal">(°C)</span>
-                </label>
-                <input type="number" step="0.1" name="temparature" id="id_temparature" value="{{ form_data.temparature }}" required class="w-full rounded-lg px-3 py-2 text-sm custom-input">
-              </div>
-
-              <div>
-                <label for="id_maxtemp" class="block text-xs font-semibold text-slate-700 mb-1">
-                  Max Temp <span class="text-slate-400 font-normal">(°C)</span>
-                </label>
-                <input type="number" step="0.1" name="maxtemp" id="id_maxtemp" value="{{ form_data.maxtemp }}" required class="w-full rounded-lg px-3 py-2 text-sm custom-input">
-              </div>
-
-              <div>
-                <label for="id_mintemp" class="block text-xs font-semibold text-slate-700 mb-1">
-                  Min Temp <span class="text-slate-400 font-normal">(°C)</span>
-                </label>
-                <input type="number" step="0.1" name="mintemp" id="id_mintemp" value="{{ form_data.mintemp }}" required class="w-full rounded-lg px-3 py-2 text-sm custom-input">
-              </div>
-            </div>
-
-            <div class="grid grid-cols-2 gap-4">
-              <div>
-                <label for="id_dewpoint" class="block text-xs font-semibold text-slate-700 mb-1">
-                  Dew Point <span class="text-slate-400 font-normal">(°C)</span>
-                </label>
-                <input type="number" step="0.1" name="dewpoint" id="id_dewpoint" value="{{ form_data.dewpoint }}" required class="w-full rounded-lg px-3 py-2 text-sm custom-input">
-              </div>
-
-              <div>
-                <label for="id_humidity" class="block text-xs font-semibold text-slate-700 mb-1">
-                  Humidity <span class="text-slate-400 font-normal">(%)</span>
-                </label>
-                <input type="number" step="0.1" min="0" max="100" name="humidity" id="id_humidity" value="{{ form_data.humidity }}" required class="w-full rounded-lg px-3 py-2 text-sm custom-input">
-              </div>
-            </div>
-          </div>
-
-          <!-- Group 3: Sky & Wind -->
-          <div>
-            <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3 border-b border-slate-100 pb-1">
-              Cloud, Sunshine & Wind
-            </h3>
-            <div class="grid grid-cols-2 gap-4 mb-4">
-              <div>
-                <label for="id_cloud" class="block text-xs font-semibold text-slate-700 mb-1">
-                  Cloud Cover <span class="text-slate-400 font-normal">(%)</span>
-                </label>
-                <input type="number" step="0.1" min="0" max="100" name="cloud" id="id_cloud" value="{{ form_data.cloud }}" required class="w-full rounded-lg px-3 py-2 text-sm custom-input">
-              </div>
-
-              <div>
-                <label for="id_sunshine" class="block text-xs font-semibold text-slate-700 mb-1">
-                  Sunshine <span class="text-slate-400 font-normal">(hours)</span>
-                </label>
-                <input type="number" step="0.1" min="0" max="24" name="sunshine" id="id_sunshine" value="{{ form_data.sunshine }}" required class="w-full rounded-lg px-3 py-2 text-sm custom-input">
-              </div>
-            </div>
-
-            <div class="grid grid-cols-2 gap-4">
-              <div>
-                <label for="id_winddirection" class="block text-xs font-semibold text-slate-700 mb-1">
-                  Wind Dir <span class="text-slate-400 font-normal">(0-360°)</span>
-                </label>
-                <input type="number" step="0.1" min="0" max="360" name="winddirection" id="id_winddirection" value="{{ form_data.winddirection }}" required class="w-full rounded-lg px-3 py-2 text-sm custom-input">
-              </div>
-
-              <div>
-                <label for="id_windspeed" class="block text-xs font-semibold text-slate-700 mb-1">
-                  Wind Speed <span class="text-slate-400 font-normal">(km/h)</span>
-                </label>
-                <input type="number" step="0.1" min="0" name="windspeed" id="id_windspeed" value="{{ form_data.windspeed }}" required class="w-full rounded-lg px-3 py-2 text-sm custom-input">
-              </div>
-            </div>
-          </div>
-
-          <button type="submit" id="submit-btn" class="w-full btn-primary font-Nunito font-semibold py-3.5 px-6 rounded-xl flex items-center justify-center space-x-2 text-base cursor-pointer">
-            <span id="btn-text">Predict Rainfall</span>
-            <svg id="btn-spinner" class="hidden animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-            </svg>
+        <!-- Preset Quick Buttons -->
+        <div class="mt-6 flex flex-wrap gap-2 items-center justify-center">
+          <span class="text-xs font-semibold text-slate-500 mr-1">Quick Presets:</span>
+          <button type="button" onclick="loadPreset('rainy')" class="text-xs font-medium bg-sky-50 text-sky-700 hover:bg-sky-100 border border-sky-200 px-3 py-1.5 rounded-lg transition-colors cursor-pointer">
+            🌧️ High Rainfall Scenario
           </button>
-        </form>
+          <button type="button" onclick="loadPreset('dry')" class="text-xs font-medium bg-amber-50 text-amber-700 hover:bg-amber-100 border border-amber-200 px-3 py-1.5 rounded-lg transition-colors cursor-pointer">
+            ☀️ Sunny Dry Scenario
+          </button>
+        </div>
       </div>
     </div>
 
-    <!-- Prediction Output & Information Panel -->
-    <div class="lg:col-span-5">
-      <div id="results-card" class="white-card rounded-2xl p-6 border border-slate-200 shadow-sm sticky top-24">
-        <h2 class="font-Nunito text-xl font-bold text-slate-900 mb-4 flex items-center">
-          <svg class="w-5 h-5 text-sky-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-          </svg>
-          Prediction Results
-        </h2>
+    <!-- Meteorological Inputs Form -->
+    <div id="form-card" class="white-card rounded-2xl p-6 md:p-8 border border-slate-200 shadow-sm transition-all">
+      <h2 class="font-outfit text-xl font-bold text-slate-900 mb-6 flex items-center">
+        <svg class="w-5 h-5 text-sky-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
+        </svg>
+        Meteorological Inputs
+      </h2>
 
-        <!-- Placeholder when no prediction made -->
-        <div id="result-placeholder" class="py-12 text-center border-2 border-dashed border-slate-200 rounded-xl">
-          <div class="w-14 h-14 bg-sky-50 text-sky-500 rounded-full flex items-center justify-center mx-auto mb-3">
-            🌧️
-          </div>
-          <p class="font-semibold text-slate-700 text-sm">Ready for Prediction</p>
-          <p class="text-xs text-slate-400 mt-1 max-w-xs mx-auto">Fill out the parameters and click 'Predict Rainfall' to run the XGBoost model.</p>
-        </div>
+      <form id="prediction-form" method="POST" action="." class="space-y-6">
+        {% csrf_token %}
 
-        <!-- Result Container -->
-        <div id="result-content" class="hidden space-y-6">
-          
-          <!-- Primary Verdict Badge -->
-          <div id="verdict-banner" class="p-5 rounded-xl text-center border transition-all">
-            <div id="verdict-icon" class="text-4xl mb-2"></div>
-            <h3 id="verdict-title" class="font-Nunito text-2xl font-extrabold mb-1"></h3>
-            <p id="verdict-subtitle" class="text-xs font-medium"></p>
-          </div>
-
-          <!-- Probability Meter Bar -->
-          <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
-            <div class="flex justify-between items-center text-xs font-bold mb-2 text-slate-700">
-              <span>Rain Probability</span>
-              <span id="prob-percentage-text" class="text-sky-600 text-sm">0%</span>
-            </div>
-            <div class="w-full bg-slate-200 rounded-full h-3.5 overflow-hidden p-0.5">
-              <div id="prob-progress-bar" class="bg-gradient-to-r from-sky-500 to-blue-600 h-full rounded-full w-0 transition-all duration-700"></div>
-            </div>
-            <div class="flex justify-between text-[11px] text-slate-400 mt-2">
-              <span>Dry (0%)</span>
-              <span>Certain Rain (100%)</span>
-            </div>
-          </div>
-
-          <!-- Key Metrics -->
-          <div class="grid grid-cols-2 gap-3 text-xs">
-            <div class="bg-slate-50 p-3 rounded-lg border border-slate-200">
-              <span class="text-slate-400 block">Rain Likelihood</span>
-              <span id="metric-rain-prob" class="font-bold text-slate-800 text-sm">-</span>
-            </div>
-            <div class="bg-slate-50 p-3 rounded-lg border border-slate-200">
-              <span class="text-slate-400 block">Dry Likelihood</span>
-              <span id="metric-norain-prob" class="font-bold text-slate-800 text-sm">-</span>
-            </div>
-          </div>
-
-          <!-- Recommendation Note -->
-          <div class="p-4 rounded-xl bg-sky-50/70 border border-sky-100 text-xs text-slate-600 flex items-start space-x-3">
-            <span class="text-sky-500 text-base">💡</span>
+        <!-- Group 1: General & Pressure -->
+        <div>
+          <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3 border-b border-slate-100 pb-1">
+            General & Atmospheric
+          </h3>
+          <div class="grid grid-cols-2 gap-4">
             <div>
-              <span class="font-semibold text-slate-800 block mb-0.5">Automated Feature Engineering</span>
-              Model computed derived metrics (Temp Range, Dewpoint Depression, Humidity/Cloud Interaction, Cyclical Day Encodings) automatically.
+              <label for="id_day" class="block text-xs font-semibold text-slate-700 mb-1">
+                Day of Year <span class="text-slate-400 font-normal">(1 - 365)</span>
+              </label>
+              <input type="number" step="1" min="1" max="365" name="day" id="id_day" value="{{ form_data.day }}" required class="w-full rounded-lg px-3 py-2 text-sm custom-input">
+            </div>
+
+            <div>
+              <label for="id_pressure" class="block text-xs font-semibold text-slate-700 mb-1">
+                Pressure <span class="text-slate-400 font-normal">(hPa)</span>
+              </label>
+              <input type="number" step="0.1" name="pressure" id="id_pressure" value="{{ form_data.pressure }}" required class="w-full rounded-lg px-3 py-2 text-sm custom-input">
+            </div>
+          </div>
+        </div>
+
+        <!-- Group 2: Temperature & Moisture -->
+        <div>
+          <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3 border-b border-slate-100 pb-1">
+            Temperature & Dew Point
+          </h3>
+          <div class="grid grid-cols-3 gap-4 mb-4">
+            <div>
+              <label for="id_temparature" class="block text-xs font-semibold text-slate-700 mb-1">
+                Temp <span class="text-slate-400 font-normal">(°C)</span>
+              </label>
+              <input type="number" step="0.1" name="temparature" id="id_temparature" value="{{ form_data.temparature }}" required class="w-full rounded-lg px-3 py-2 text-sm custom-input">
+            </div>
+
+            <div>
+              <label for="id_maxtemp" class="block text-xs font-semibold text-slate-700 mb-1">
+                Max Temp <span class="text-slate-400 font-normal">(°C)</span>
+              </label>
+              <input type="number" step="0.1" name="maxtemp" id="id_maxtemp" value="{{ form_data.maxtemp }}" required class="w-full rounded-lg px-3 py-2 text-sm custom-input">
+            </div>
+
+            <div>
+              <label for="id_mintemp" class="block text-xs font-semibold text-slate-700 mb-1">
+                Min Temp <span class="text-slate-400 font-normal">(°C)</span>
+              </label>
+              <input type="number" step="0.1" name="mintemp" id="id_mintemp" value="{{ form_data.mintemp }}" required class="w-full rounded-lg px-3 py-2 text-sm custom-input">
             </div>
           </div>
 
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label for="id_dewpoint" class="block text-xs font-semibold text-slate-700 mb-1">
+                Dew Point <span class="text-slate-400 font-normal">(°C)</span>
+              </label>
+              <input type="number" step="0.1" name="dewpoint" id="id_dewpoint" value="{{ form_data.dewpoint }}" required class="w-full rounded-lg px-3 py-2 text-sm custom-input">
+            </div>
+
+            <div>
+              <label for="id_humidity" class="block text-xs font-semibold text-slate-700 mb-1">
+                Humidity <span class="text-slate-400 font-normal">(%)</span>
+              </label>
+              <input type="number" step="0.1" min="0" max="100" name="humidity" id="id_humidity" value="{{ form_data.humidity }}" required class="w-full rounded-lg px-3 py-2 text-sm custom-input">
+            </div>
+          </div>
         </div>
 
-      </div>
-    </div>
+        <!-- Group 3: Sky & Wind -->
+        <div>
+          <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3 border-b border-slate-100 pb-1">
+            Cloud, Sunshine & Wind
+          </h3>
+          <div class="grid grid-cols-2 gap-4 mb-4">
+            <div>
+              <label for="id_cloud" class="block text-xs font-semibold text-slate-700 mb-1">
+                Cloud Cover <span class="text-slate-400 font-normal">(%)</span>
+              </label>
+              <input type="number" step="0.1" min="0" max="100" name="cloud" id="id_cloud" value="{{ form_data.cloud }}" required class="w-full rounded-lg px-3 py-2 text-sm custom-input">
+            </div>
 
+            <div>
+              <label for="id_sunshine" class="block text-xs font-semibold text-slate-700 mb-1">
+                Sunshine <span class="text-slate-400 font-normal">(hours)</span>
+              </label>
+              <input type="number" step="0.1" min="0" max="24" name="sunshine" id="id_sunshine" value="{{ form_data.sunshine }}" required class="w-full rounded-lg px-3 py-2 text-sm custom-input">
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label for="id_winddirection" class="block text-xs font-semibold text-slate-700 mb-1">
+                Wind Dir <span class="text-slate-400 font-normal">(0-360°)</span>
+              </label>
+              <input type="number" step="0.1" min="0" max="360" name="winddirection" id="id_winddirection" value="{{ form_data.winddirection }}" required class="w-full rounded-lg px-3 py-2 text-sm custom-input">
+            </div>
+
+            <div>
+              <label for="id_windspeed" class="block text-xs font-semibold text-slate-700 mb-1">
+                Wind Speed <span class="text-slate-400 font-normal">(km/h)</span>
+              </label>
+              <input type="number" step="0.1" min="0" name="windspeed" id="id_windspeed" value="{{ form_data.windspeed }}" required class="w-full rounded-lg px-3 py-2 text-sm custom-input">
+            </div>
+          </div>
+        </div>
+
+        <button type="submit" id="submit-btn" class="w-full btn-primary font-outfit font-semibold py-3.5 px-6 rounded-xl flex items-center justify-center space-x-2 text-base cursor-pointer">
+          <span id="btn-text">Predict Rainfall</span>
+          <svg id="btn-spinner" class="hidden animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          </svg>
+        </button>
+      </form>
+    </div>
   </div>
+
+  <!-- INCLUDED PREDICTION RESULTS PARTIAL TEMPLATE -->
+  {% include 'predictor/results.html' %}
+
 </div>
 {% endblock %}
 
