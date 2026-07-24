@@ -74,14 +74,14 @@ function displayResult(result) {
     verdictBanner.className = 'p-5 rounded-xl text-center border badge-rain shadow-sm';
     verdictIcon.innerText = '🌧️';
     verdictTitle.innerText = 'Rainfall Expected';
-    verdictTitle.className = 'font-Nunito text-2xl font-extrabold mb-1 text-blue-900';
+    verdictTitle.className = 'font-outfit text-2xl font-extrabold mb-1 text-blue-900';
     verdictSubtitle.innerText = `High confidence prediction (${rainProb}% likelihood of rain)`;
     verdictSubtitle.className = 'text-xs font-semibold text-blue-700';
   } else {
     verdictBanner.className = 'p-5 rounded-xl text-center border badge-norain shadow-sm';
     verdictIcon.innerText = '☀️';
     verdictTitle.innerText = 'No Rain Expected';
-    verdictTitle.className = 'font-Nunito text-2xl font-extrabold mb-1 text-emerald-900';
+    verdictTitle.className = 'font-outfit text-2xl font-extrabold mb-1 text-emerald-900';
     verdictSubtitle.innerText = `Clear weather likely (${result.no_rain_probability}% chance of dry weather)`;
     verdictSubtitle.className = 'text-xs font-semibold text-emerald-700';
   }
@@ -111,6 +111,63 @@ document.addEventListener('DOMContentLoaded', () => {
     gsap.from('#hero-banner', { duration: 0.7, y: -20, opacity: 0, ease: 'power2.out' });
     gsap.from('#form-card', { duration: 0.7, x: -30, opacity: 0, delay: 0.15, ease: 'power2.out' });
     gsap.from('#results-card', { duration: 0.7, x: 30, opacity: 0, delay: 0.25, ease: 'power2.out' });
+  }
+
+  // --- Notification Bell & Badge GSAP Animations ---
+  const notifBtn = document.getElementById('notification-btn');
+  const bellIcon = document.getElementById('bell-icon');
+  const notifBadge = document.getElementById('notif-badge');
+  const notifDropdown = document.getElementById('notif-dropdown');
+
+  if (notifBtn && bellIcon) {
+    // Bell Ring GSAP Timeline on Hover
+    let bellTimeline = null;
+    
+    notifBtn.addEventListener('mouseenter', () => {
+      if (typeof gsap !== 'undefined') {
+        if (bellTimeline) bellTimeline.kill();
+        
+        bellTimeline = gsap.timeline();
+        bellTimeline
+          .to(bellIcon, { rotation: -16, duration: 0.08, transformOrigin: 'top center', ease: 'power1.out' })
+          .to(bellIcon, { rotation: 16, duration: 0.1, ease: 'power1.inOut' })
+          .to(bellIcon, { rotation: -10, duration: 0.1, ease: 'power1.inOut' })
+          .to(bellIcon, { rotation: 10, duration: 0.1, ease: 'power1.inOut' })
+          .to(bellIcon, { rotation: -4, duration: 0.08, ease: 'power1.inOut' })
+          .to(bellIcon, { rotation: 0, duration: 0.08, ease: 'power1.out' });
+
+        // Pop badge dot slightly
+        const dot = notifBadge?.querySelector('.t-badge-dot');
+        if (dot) {
+          gsap.fromTo(dot, { scale: 1.25 }, { scale: 1, duration: 0.4, ease: 'back.out(2)' });
+        }
+      }
+    });
+
+    // Toggle Dropdown & Badge Open State on Click
+    notifBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const isHidden = notifDropdown.classList.contains('hidden');
+
+      if (isHidden) {
+        notifDropdown.classList.remove('hidden');
+        if (typeof gsap !== 'undefined') {
+          gsap.fromTo(notifDropdown, 
+            { opacity: 0, scale: 0.85, y: -10 }, 
+            { opacity: 1, scale: 1, y: 0, duration: 0.35, ease: 'back.out(1.7)' }
+          );
+        }
+      } else {
+        notifDropdown.classList.add('hidden');
+      }
+    });
+
+    // Close dropdown on outside click
+    document.addEventListener('click', (e) => {
+      if (notifDropdown && !notifDropdown.contains(e.target) && !notifBtn.contains(e.target)) {
+        notifDropdown.classList.add('hidden');
+      }
+    });
   }
 
   // Handle AJAX Form Submission
