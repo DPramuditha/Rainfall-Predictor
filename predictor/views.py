@@ -6,10 +6,11 @@ from .ml_model import ModelLoader
 def index(request):
     """
     Renders the Rainfall Predictor home page with the prediction form.
-    Handles POST requests for AJAX/form predictions.
+    Handles POST requests for AJAX/form predictions with model selection support.
     """
     result = None
     errors = None
+    selected_model = 'xgboost'
     form_data = {
         'day': 180,
         'pressure': 1013.2,
@@ -34,6 +35,8 @@ def index(request):
         else:
             data = request.POST
 
+        selected_model = data.get('model_choice', 'xgboost')
+
         try:
             parsed_data = {
                 'day': float(data.get('day', 180)),
@@ -49,7 +52,7 @@ def index(request):
                 'windspeed': float(data.get('windspeed', 12.5)),
             }
             form_data = parsed_data
-            result = ModelLoader.predict(parsed_data)
+            result = ModelLoader.predict(parsed_data, model_name=selected_model)
 
             if request.headers.get('x-requested-with') == 'XMLHttpRequest' or request.content_type == 'application/json':
                 return JsonResponse({'success': True, 'result': result})
@@ -62,5 +65,6 @@ def index(request):
     return render(request, 'predictor/index.html', {
         'form_data': form_data,
         'result': result,
-        'errors': errors
+        'errors': errors,
+        'selected_model': selected_model
     })

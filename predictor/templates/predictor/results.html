@@ -1,33 +1,39 @@
 <!-- PREDICTION RESULTS SECTION (Right Side Panel) -->
 <div id="results-section" class="transition-all duration-500">
-  <div id="results-card" class="white-card rounded-2xl p-6 md:p-8 border border-slate-200 shadow-sm relative overflow-hidden">
+  <div id="results-card" class="white-card rounded-2xl p-6 md:p-8 border border-slate-200 dark:border-slate-800 shadow-sm relative overflow-hidden">
     
     <!-- Top Bar Header -->
-    <div class="flex items-center justify-between mb-6 pb-3 border-b border-slate-100">
+    <div class="flex items-center justify-between mb-6 pb-3 border-b border-slate-100 dark:border-slate-800">
       <div class="flex items-center space-x-2.5">
         <span class="relative flex size-3">
           <span id="output-dot-ping" class="absolute inline-flex h-full w-full animate-ping rounded-full {% if result %}{% if result.will_rain %}bg-blue-400{% else %}bg-amber-400{% endif %}{% else %}bg-sky-400{% endif %} opacity-75 transition-colors duration-500"></span>
           <span id="output-dot-solid" class="relative inline-flex size-3 rounded-full {% if result %}{% if result.will_rain %}bg-blue-600{% else %}bg-amber-500{% endif %}{% else %}bg-sky-500{% endif %} transition-colors duration-500"></span>
         </span>
-        <span class="font-outfit text-sm font-bold text-slate-800">Prediction Output</span>
+        <span class="font-outfit text-sm font-bold text-slate-800 dark:text-slate-200">Prediction Output</span>
       </div>
-      <span class="text-[11px] font-semibold text-sky-600 bg-sky-50 px-2.5 py-0.5 rounded-full border border-sky-200 uppercase tracking-wider">XGBoost ML</span>
+      <span id="model-badge" class="text-[11px] font-semibold {% if result %}{% if result.model_used == 'neural_network' %}text-indigo-700 dark:text-indigo-300 bg-indigo-50 dark:bg-indigo-950/80 border-indigo-200 dark:border-indigo-800{% else %}text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/80 border-emerald-200 dark:border-emerald-800{% endif %}{% else %}{% if selected_model == 'neural_network' %}text-indigo-700 dark:text-indigo-300 bg-indigo-50 dark:bg-indigo-950/80 border-indigo-200 dark:border-indigo-800{% else %}text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/80 border-emerald-200 dark:border-emerald-800{% endif %}{% endif %} px-2.5 py-0.5 rounded-full border uppercase tracking-wider">
+        {% if result %}
+          {{ result.model_display_name }}
+        {% else %}
+          {% if selected_model == 'neural_network' %}Neural Network (Keras DL){% else %}XGBoost ML Model{% endif %}
+        {% endif %}
+      </span>
     </div>
 
     <!-- INITIAL PLACEHOLDER (Visible before first prediction calculation) -->
     <div id="results-placeholder" class="{% if result %}hidden{% endif %} text-center py-8 px-4 space-y-4">
-      <div class="w-16 h-16 mx-auto rounded-2xl bg-sky-50 border border-sky-100 flex items-center justify-center text-3xl text-sky-600 shadow-2xs">
+      <div class="w-16 h-16 mx-auto rounded-2xl bg-sky-50 dark:bg-slate-800 border border-sky-100 dark:border-slate-700 flex items-center justify-center text-3xl text-sky-600 dark:text-sky-400 shadow-2xs">
         🌤️
       </div>
       <div>
-        <h3 class="font-outfit text-base font-bold text-slate-900 mb-1">Ready for Prediction</h3>
-        <p class="text-xs text-slate-500 max-w-xs mx-auto leading-relaxed">
+        <h3 class="font-outfit text-base font-bold text-slate-900 dark:text-white mb-1">Ready for Prediction</h3>
+        <p class="text-xs text-slate-500 dark:text-slate-400 max-w-xs mx-auto leading-relaxed">
           Enter meteorological measurements on the left and click <strong>Predict Rainfall</strong> to generate real-time AI weather forecast results.
         </p>
       </div>
-      <div class="pt-2 flex flex-wrap justify-center gap-2 text-[11px] text-slate-400">
-        <span class="bg-slate-50 border border-slate-200/80 px-2.5 py-1 rounded-md">Real-time XGBoost</span>
-        <span class="bg-slate-50 border border-slate-200/80 px-2.5 py-1 rounded-md">Feature Engineering</span>
+      <div class="pt-2 flex flex-wrap justify-center gap-2 text-[11px] text-slate-400 dark:text-slate-400">
+        <span class="bg-slate-50 dark:bg-slate-900/80 border border-slate-200/80 dark:border-slate-800 px-2.5 py-1 rounded-md">Real-time XGBoost</span>
+        <span class="bg-slate-50 dark:bg-slate-900/80 border border-slate-200/80 dark:border-slate-800 px-2.5 py-1 rounded-md">Feature Engineering</span>
       </div>
     </div>
 
@@ -39,10 +45,10 @@
         <div id="verdict-icon" class="text-4xl md:text-5xl mb-2">
           {% if result %}{% if result.will_rain %}🌧️{% else %}☀️{% endif %}{% endif %}
         </div>
-        <h3 id="verdict-title" class="font-outfit text-2xl font-extrabold mb-1 {% if result %}{% if result.will_rain %}text-blue-900{% else %}text-amber-900{% endif %}{% endif %}">
+        <h3 id="verdict-title" class="font-outfit text-2xl font-extrabold mb-1 {% if result %}{% if result.will_rain %}text-blue-900 dark:text-blue-200{% else %}text-amber-900 dark:text-amber-200{% endif %}{% endif %}">
           {% if result %}{% if result.will_rain %}Rainfall Expected{% else %}No Rain Expected{% endif %}{% endif %}
         </h3>
-        <p id="verdict-subtitle" class="text-xs font-semibold {% if result %}{% if result.will_rain %}text-blue-700{% else %}text-amber-700{% endif %}{% endif %}">
+        <p id="verdict-subtitle" class="text-xs font-semibold {% if result %}{% if result.will_rain %}text-blue-700 dark:text-blue-300{% else %}text-amber-700 dark:text-amber-300{% endif %}{% endif %}">
           {% if result %}
             {% if result.will_rain %}
               High confidence prediction ({{ result.rain_probability }}% likelihood of rain)
@@ -54,38 +60,47 @@
       </div>
 
       <!-- Probability Meter Bar -->
-      <div class="bg-slate-50/80 p-4 rounded-2xl border border-slate-200/80">
-        <div class="flex justify-between items-center text-xs font-bold mb-2 text-slate-700">
-          <span>Rainfall Probability</span>
-          <span id="prob-percentage-text" class="text-sky-600 text-sm font-extrabold">{% if result %}{{ result.rain_probability }}%{% else %}0%{% endif %}</span>
+      <div class="bg-slate-50/80 dark:bg-slate-900/80 p-4 rounded-2xl border border-slate-200/80 dark:border-slate-800">
+        <div class="flex justify-between items-center text-xs font-bold mb-2 text-slate-700 dark:text-slate-300">
+          <span class="flex items-center space-x-1.5">
+            <span>Rainfall Probability</span>
+            <span id="prob-status-badge" class="text-[10px] px-2 py-0.5 rounded-full font-bold uppercase transition-colors text-sky-700 dark:text-sky-300 bg-sky-50 dark:bg-sky-950/80 border border-sky-200 dark:border-sky-800">
+              {% if result %}{% if result.will_rain %}High Likelihood{% else %}Low Likelihood{% endif %}{% else %}Awaiting Data{% endif %}
+            </span>
+          </span>
+          <span id="prob-percentage-text" class="text-sky-600 dark:text-sky-400 text-base font-black font-outfit tracking-tight">{% if result %}{{ result.rain_probability }}%{% else %}0.0%{% endif %}</span>
         </div>
-        <div class="w-full bg-slate-200/80 rounded-full h-3.5 overflow-hidden p-0.5 shadow-inner">
-          <div id="prob-progress-bar" class="{% if result %}{% if result.will_rain %}bg-gradient-to-r from-sky-500 to-blue-600{% else %}bg-gradient-to-r from-amber-400 to-emerald-500{% endif %}{% else %}bg-gradient-to-r from-sky-500 to-blue-600{% endif %} h-full rounded-full transition-all duration-700" style="width: {% if result %}{{ result.rain_probability }}%{% else %}0%{% endif %}"></div>
+        <div class="w-full bg-slate-200/80 dark:bg-slate-800 rounded-full h-4 overflow-hidden p-0.5 shadow-inner relative">
+          <div id="prob-progress-bar" 
+               class="{% if result %}{% if result.will_rain %}bg-gradient-to-r from-sky-500 via-blue-600 to-indigo-600{% else %}bg-gradient-to-r from-amber-400 via-amber-500 to-emerald-500{% endif %}{% else %}bg-gradient-to-r from-sky-500 to-blue-600{% endif %} h-full rounded-full transition-colors duration-500 relative flex items-center justify-end pr-0.5" 
+               style="width: {% if result %}{{ result.rain_probability }}%{% else %}0%{% endif %}">
+            <span id="progress-tip-dot" class="inline-block w-2.5 h-2.5 rounded-full bg-white shadow-sm shrink-0"></span>
+          </div>
         </div>
-        <div class="flex justify-between text-[10px] font-medium text-slate-400 mt-1.5">
-          <span>Dry (0%)</span>
-          <span>50% Threshold</span>
-          <span>Certain Rain (100%)</span>
+        <div class="flex justify-between text-[10px] font-medium text-slate-400 dark:text-slate-500 mt-2">
+          <span>0% (Dry)</span>
+          <span class="font-semibold text-slate-500 dark:text-slate-400">50% Decision Line</span>
+          <span>100% (Torrential)</span>
         </div>
       </div>
 
       <!-- Key Metrics Grid -->
       <div class="grid grid-cols-2 gap-3 text-xs">
-        <div class="bg-slate-50/80 p-3.5 rounded-xl border border-slate-200/80">
+        <div class="bg-slate-50/80 dark:bg-slate-900/80 p-3.5 rounded-xl border border-slate-200/80 dark:border-slate-800">
           <span class="text-slate-400 block text-[11px] mb-0.5">Rain Probability</span>
-          <span id="metric-rain-prob" class="font-bold text-slate-900 text-base">{% if result %}{{ result.rain_probability }}%{% else %}-{% endif %}</span>
+          <span id="metric-rain-prob" class="font-bold text-slate-900 dark:text-white text-base">{% if result %}{{ result.rain_probability }}%{% else %}-{% endif %}</span>
         </div>
-        <div class="bg-slate-50/80 p-3.5 rounded-xl border border-slate-200/80">
+        <div class="bg-slate-50/80 dark:bg-slate-900/80 p-3.5 rounded-xl border border-slate-200/80 dark:border-slate-800">
           <span class="text-slate-400 block text-[11px] mb-0.5">Dry Probability</span>
-          <span id="metric-norain-prob" class="font-bold text-slate-900 text-base">{% if result %}{{ result.no_rain_probability }}%{% else %}-{% endif %}</span>
+          <span id="metric-norain-prob" class="font-bold text-slate-900 dark:text-white text-base">{% if result %}{{ result.no_rain_probability }}%{% else %}-{% endif %}</span>
         </div>
       </div>
 
       <!-- Feature Engineering Note -->
-      <div class="p-3.5 rounded-xl bg-sky-50/70 border border-sky-100 text-xs text-slate-600 flex items-start space-x-2.5">
+      <div class="p-3.5 rounded-xl bg-sky-50/70 dark:bg-sky-950/40 border border-sky-100 dark:border-sky-900/60 text-xs text-slate-600 dark:text-slate-300 flex items-start space-x-2.5">
         <span class="text-sky-500 text-sm">💡</span>
         <div class="text-[11px] leading-relaxed">
-          <span class="font-semibold text-slate-800 block mb-0.5">Automated Feature Engineering</span>
+          <span class="font-semibold text-slate-800 dark:text-slate-200 block mb-0.5">Automated Feature Engineering</span>
           Model calculated derived features automatically (Temp Range, Dewpoint Depression, Sunshine/Cloud Ratio, Wind Power, Seasonality).
         </div>
       </div>
