@@ -4,6 +4,9 @@ import pandas as pd
 import numpy as np
 from django.conf import settings
 
+import logging
+logger = logging.getLogger(__name__)
+
 # Suppress TF C++ log messages & set Keras backend
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 os.environ['KERAS_BACKEND'] = 'tensorflow'
@@ -84,6 +87,8 @@ def _apply_keras_patches():
 
 class ModelLoader:
     _models = {}
+    _nn_means = np.array([182.5, 1013.2, 28.0, 24.0, 18.0, 17.0, 70.0, 50.0, 6.0, 180.0, 12.0, 10.0, 7.0, 0.12, 0.35, 0.70, 12000.0, -1.0, 0.0, 0.0])
+    _nn_stds  = np.array([105.0,   10.0,  6.0,  5.0,  5.0,  5.0, 20.0, 30.0, 4.0, 100.0,  8.0,  4.0,  4.0, 0.10, 0.25, 0.20,  8000.0,  4.0, 0.7, 0.7])
 
     @classmethod
     def get_model(cls, model_name: str = 'xgboost'):
@@ -148,11 +153,14 @@ class ModelLoader:
         if is_nn:
             try:
                 model = cls.get_model('neural_network')
-                nn_out = model.predict(df_processed, verbose=0)
+                # Standardize input features for Neural Network dense layers
+                scaled_inputs = (df_processed.values - cls._nn_means) / cls._nn_stds
+                nn_out = model.predict(scaled_inputs, verbose=0)
                 rain_prob = float(nn_out[0][0])
                 no_rain_prob = 1.0 - rain_prob
                 prediction = 1 if rain_prob >= 0.5 else 0
             except Exception as e:
+                logger.error("Neural Network prediction error: %s", e)
                 # Fallback gracefully to XGBoost if Neural Network is unavailable
                 model = cls.get_model('xgboost')
                 prediction = int(model.predict(df_processed)[0])

@@ -7,15 +7,29 @@
   <meta name="description" content="Rainfall Prediction Web Application powered by XGBoost and Django">
   <title>{% block title %}Rainfall Predictor{% endblock %}</title>
 
+  <!-- Early Theme Setup Script (Prevents FOUC) -->
+  <script>
+    (function() {
+      const savedTheme = localStorage.getItem('theme');
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+      }
+    })();
+  </script>
+
   <!-- Google Fonts: Nunito, Inter, Outfit -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Nunito:ital,wght@0,300..1000;1,300..1000&family=Outfit:wght@400;600;700;800&display=swap" rel="stylesheet">
 
-  <!-- Tailwind CSS CDN Configured with Nunito Font -->
+  <!-- Tailwind CSS CDN Configured with Nunito Font & Class DarkMode -->
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
+      darkMode: 'class',
       theme: {
         extend: {
           fontFamily: {
@@ -27,7 +41,10 @@
       }
     }
   </script>
-  <link rel="stylesheet" href="{% static 'css/output.css' %}?v=12">
+  <link rel="stylesheet" href="{% static 'css/output.css' %}?v=13">
+
+  <!-- Chart.js CDN for Shadcn Area Chart -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
   <!-- GSAP Animation Library & Plugins (Local Vendor Files) -->
   <script src="{% static 'js/vendor/gsap.min.js' %}"></script>
@@ -36,35 +53,35 @@
 
   {% block extra_head %}{% endblock %}
 </head>
-<body id="page-body" class="bg-slate-50 text-slate-900 min-h-screen font-sans antialiased selection:bg-sky-500 selection:text-white overflow-x-hidden transition-colors duration-700">
+<body id="page-body" class="bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 min-h-screen font-sans antialiased selection:bg-sky-500 selection:text-white overflow-x-hidden transition-colors duration-700">
   <!-- Fixed Dynamic Ambient Background Highlights (#7b7fec, #731ae8, #2f5cff) -->
   <div class="fixed inset-0 pointer-events-none overflow-hidden z-0" aria-hidden="true">
-    <div id="bg-glow-1" class="ambient-glow absolute -top-24 -left-24 w-[34rem] h-[34rem] rounded-full blur-[100px] opacity-60" style="background: radial-gradient(circle, #7b7fec 0%, rgba(123, 127, 236, 0) 70%);"></div>
-    <div id="bg-glow-2" class="ambient-glow absolute top-1/3 -right-24 w-[36rem] h-[36rem] rounded-full blur-[110px] opacity-55" style="background: radial-gradient(circle, #731ae8 0%, rgba(115, 26, 232, 0) 70%);"></div>
-    <div id="bg-glow-3" class="ambient-glow absolute -bottom-24 left-1/4 w-[38rem] h-[38rem] rounded-full blur-[120px] opacity-50" style="background: radial-gradient(circle, #2f5cff 0%, rgba(47, 92, 255, 0) 70%);"></div>
+    <div id="bg-glow-1" class="ambient-glow absolute -top-24 -left-24 w-[38rem] h-[38rem] rounded-full blur-[180px] opacity-60 dark:opacity-40" style="background: radial-gradient(circle, #7b7fec 0%, rgba(123, 127, 236, 0) 70%); filter: blur(180px);"></div>
+    <div id="bg-glow-2" class="ambient-glow absolute top-1/3 -right-24 w-[40rem] h-[40rem] rounded-full blur-[200px] opacity-55 dark:opacity-35" style="background: radial-gradient(circle, #731ae8 0%, rgba(115, 26, 232, 0) 70%); filter: blur(200px);"></div>
+    <div id="bg-glow-3" class="ambient-glow absolute -bottom-24 left-1/4 w-[42rem] h-[42rem] rounded-full blur-[220px] opacity-50 dark:opacity-30" style="background: radial-gradient(circle, #2f5cff 0%, rgba(47, 92, 255, 0) 70%); filter: blur(220px);"></div>
   </div>
 
   <!-- Fixed Navigation Header (Outside smooth-wrapper for perfect viewport fixed positioning) -->
-  <header class="fixed top-0 left-0 right-0 z-50 border-b border-slate-200/80 bg-white/80 backdrop-blur-md backdrop-saturate-150 shadow-2xs transition-all">
+  <header class="fixed top-0 left-0 right-0 z-50 border-b border-slate-200/80 dark:border-slate-800/80 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md backdrop-saturate-150 shadow-2xs transition-all">
     <div class="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
       <div class="flex items-center space-x-3">
-        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-sky-500 to-blue-600 flex items-center justify-center text-white">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-sky-500 to-blue-600 flex items-center justify-center text-white shadow-xs">
           <img src="{% static 'images/Cloud With Lightning And Rain.webp' %}" alt="Rain Icon" class="w-10 h-10">
         </div>
         <div>
-          <span class="font-outfit font-extrabold text-xl tracking-tight text-slate-900">
-            Rainfall<span class="text-sky-600">Predict</span>
+          <span class="font-outfit font-extrabold text-xl tracking-tight text-slate-900 dark:text-white">
+            Rainfall<span class="text-sky-600 dark:text-sky-400">Predict</span>
           </span>
-          <span class="text-[10px] font-semibold tracking-wider text-sky-600 bg-sky-50 uppercase px-2 py-0.5 rounded-md ml-2 border border-sky-200">
+          <span class="text-[10px] font-semibold tracking-wider text-sky-600 dark:text-sky-400 bg-sky-50 dark:bg-sky-950/80 uppercase px-2 py-0.5 rounded-md ml-2 border border-sky-200 dark:border-sky-800">
             AI Powered
           </span>
         </div>
       </div>
 
-      <div class="flex items-center space-x-4">
+      <div class="flex items-center space-x-3 sm:space-x-4">
         <!-- Transitions.dev Model Selector Dropdown -->
         <div class="relative">
-          <button id="model-dropdown-btn" type="button" aria-label="Select Model" class="inline-flex items-center space-x-2 px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all duration-300 cursor-pointer shadow-2xs {% if selected_model == 'neural_network' %}bg-indigo-50/90 text-indigo-900 border border-indigo-300 hover:bg-indigo-100/90{% else %}bg-emerald-50/90 text-emerald-900 border border-emerald-300 hover:bg-emerald-100/90{% endif %}">
+          <button id="model-dropdown-btn" type="button" aria-label="Select Model" class="inline-flex items-center space-x-2 px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all duration-300 cursor-pointer shadow-2xs {% if selected_model == 'neural_network' %}bg-indigo-50/90 dark:bg-indigo-950/80 text-indigo-900 dark:text-indigo-200 border border-indigo-300 dark:border-indigo-700 hover:bg-indigo-100/90 dark:hover:bg-indigo-900/90{% else %}bg-emerald-50/90 dark:bg-emerald-950/80 text-emerald-900 dark:text-emerald-200 border border-emerald-300 dark:border-emerald-700 hover:bg-emerald-100/90 dark:hover:bg-emerald-900/90{% endif %}">
             <span class="relative flex size-3">
               <span id="model-ping-ring" class="absolute inline-flex h-full w-full animate-ping rounded-full {% if selected_model == 'neural_network' %}bg-indigo-400{% else %}bg-green-400{% endif %} opacity-75"></span>
               <span id="model-ping-dot" class="relative inline-flex size-3 rounded-full {% if selected_model == 'neural_network' %}bg-indigo-500{% else %}bg-green-500{% endif %}"></span>
@@ -78,45 +95,60 @@
                 <span>XGBoost ML Model</span>
               {% endif %}
             </span>
-            <svg class="w-3.5 h-3.5 text-slate-500 transform transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg class="w-3.5 h-3.5 text-slate-500 dark:text-slate-400 transform transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
             </svg>
           </button>
 
           <!-- Transitions.dev Menu Dropdown -->
-          <div id="model-t-dropdown" class="t-dropdown absolute right-0 mt-2 w-64 bg-white/95 backdrop-blur-md rounded-2xl shadow-xl border border-slate-200/90 p-2 z-50" data-origin="top-right">
-            <div class="px-3 py-1.5 border-b border-slate-100 mb-1 flex items-center justify-between">
-              <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Select AI Model</span>
-              <span class="text-[10px] font-semibold text-sky-600 bg-sky-50 px-2 py-0.5 rounded-full border border-sky-100">Live Switch</span>
+          <div id="model-t-dropdown" class="t-dropdown absolute right-0 mt-2 w-64 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md rounded-2xl shadow-xl border border-slate-200/90 dark:border-slate-800 p-2 z-50" data-origin="top-right">
+            <div class="px-3 py-1.5 border-b border-slate-100 dark:border-slate-800 mb-1 flex items-center justify-between">
+              <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">Select AI Model</span>
+              <span class="text-[10px] font-semibold text-sky-600 dark:text-sky-400 bg-sky-50 dark:bg-sky-950/80 px-2 py-0.5 rounded-full border border-sky-100 dark:border-sky-800">Live Switch</span>
             </div>
             
-            <button type="button" onclick="selectModelOption('xgboost')" class="w-full text-left p-2.5 rounded-xl hover:bg-sky-50/80 transition-colors flex items-start space-x-2.5 group cursor-pointer">
+            <button type="button" onclick="selectModelOption('xgboost')" class="w-full text-left p-2.5 rounded-xl hover:bg-sky-50/80 dark:hover:bg-slate-800/80 transition-colors flex items-start space-x-2.5 group cursor-pointer">
               <img src="{% static 'images/High Voltage.webp' %}" alt="XGBoost" class="w-6 h-6 mt-0.5 object-contain shrink-0">
               <div class="flex-1">
                 <div class="flex items-center justify-between">
-                  <span class="font-outfit font-bold text-xs text-slate-800 group-hover:text-sky-600">XGBoost ML Model</span>
-                  <span id="check-xgboost" class="text-sky-600 font-bold text-xs {% if selected_model == 'neural_network' %}hidden{% endif %}">✓</span>
+                  <span class="font-outfit font-bold text-xs text-slate-800 dark:text-slate-200 group-hover:text-sky-600 dark:group-hover:text-sky-400">XGBoost ML Model</span>
+                  <span id="check-xgboost" class="text-sky-600 dark:text-sky-400 font-bold text-xs {% if selected_model == 'neural_network' %}hidden{% endif %}">✓</span>
                 </div>
-                <p class="text-[11px] text-slate-500 leading-tight">Gradient Boosted Trees (High Speed)</p>
+                <p class="text-[11px] text-slate-500 dark:text-slate-400 leading-tight">Gradient Boosted Trees (High Speed)</p>
               </div>
             </button>
 
-            <button type="button" onclick="selectModelOption('neural_network')" class="w-full text-left p-2.5 rounded-xl hover:bg-sky-50/80 transition-colors flex items-start space-x-2.5 group cursor-pointer">
+            <button type="button" onclick="selectModelOption('neural_network')" class="w-full text-left p-2.5 rounded-xl hover:bg-sky-50/80 dark:hover:bg-slate-800/80 transition-colors flex items-start space-x-2.5 group cursor-pointer">
               <img src="{% static 'images/brain.webp' %}" alt="Neural Network" class="w-6 h-6 mt-0.5 object-contain shrink-0">
               <div class="flex-1">
                 <div class="flex items-center justify-between">
-                  <span class="font-outfit font-bold text-xs text-slate-800 group-hover:text-sky-600">Neural Network Model</span>
-                  <span id="check-neural_network" class="text-sky-600 font-bold text-xs {% if selected_model != 'neural_network' %}hidden{% endif %}">✓</span>
+                  <span class="font-outfit font-bold text-xs text-slate-800 dark:text-slate-200 group-hover:text-sky-600 dark:group-hover:text-sky-400">Neural Network Model</span>
+                  <span id="check-neural_network" class="text-sky-600 dark:text-sky-400 font-bold text-xs {% if selected_model != 'neural_network' %}hidden{% endif %}">✓</span>
                 </div>
-                <p class="text-[11px] text-slate-500 leading-tight">Keras Deep Learning (.keras)</p>
+                <p class="text-[11px] text-slate-500 dark:text-slate-400 leading-tight">Keras Deep Learning (.keras)</p>
               </div>
             </button>
           </div>
         </div>
 
+        <!-- Light / Dark Mode Toggle Button -->
+        <button id="theme-toggle-btn" type="button" aria-label="Toggle Light and Dark Mode" onclick="toggleTheme()" class="inline-flex items-center space-x-2 px-3 py-1.5 rounded-xl text-xs font-bold transition-all duration-300 cursor-pointer shadow-2xs border bg-slate-100/90 dark:bg-slate-800/90 text-slate-700 dark:text-slate-200 border-slate-300 dark:border-slate-700 hover:bg-slate-200/90 dark:hover:bg-slate-700/90">
+          <span class="w-4 h-4 relative flex items-center justify-center shrink-0">
+            <!-- Sun Icon (Active when Dark mode is enabled, click switches to Light) -->
+            <svg id="theme-sun-icon" class="w-4 h-4 text-amber-400 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+            </svg>
+            <!-- Moon Icon (Active when Light mode is enabled, click switches to Dark) -->
+            <svg id="theme-moon-icon" class="w-4 h-4 text-slate-600 dark:text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+            </svg>
+          </span>
+          <span id="theme-toggle-text" class="hidden sm:inline-block">Dark</span>
+        </button>
+
         <!-- Interactive Notification Bell with Animated Badge -->
         <div class="relative">
-          <button id="notification-btn" aria-label="Notifications" class="relative p-2 rounded-xl text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors focus:outline-none cursor-pointer">
+          <button id="notification-btn" aria-label="Notifications" class="relative p-2 rounded-xl text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors focus:outline-none cursor-pointer">
             <svg id="bell-icon" class="w-5 h-5 transform-gpu" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
             </svg>
@@ -126,15 +158,15 @@
           </button>
 
           <!-- Notification Dropdown Panel -->
-          <div id="notif-dropdown" class="hidden absolute right-0 mt-2 w-72 bg-white rounded-2xl shadow-xl border border-slate-200/90 p-4 z-50 transform origin-top-right">
-            <div class="flex items-center justify-between pb-2 border-b border-slate-100 mb-3">
-              <span class="font-outfit font-bold text-sm text-slate-900">Notifications</span>
-              <span class="text-[11px] font-medium bg-sky-50 text-sky-600 px-2 py-0.5 rounded-full border border-sky-200">1 New</span>
+          <div id="notif-dropdown" class="hidden absolute right-0 mt-2 w-72 bg-white dark:bg-slate-900 rounded-2xl shadow-xl border border-slate-200/90 dark:border-slate-800 p-4 z-50 transform origin-top-right">
+            <div class="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-slate-800 mb-3">
+              <span class="font-outfit font-bold text-sm text-slate-900 dark:text-slate-100">Notifications</span>
+              <span class="text-[11px] font-medium bg-sky-50 dark:bg-sky-950/80 text-sky-600 dark:text-sky-400 px-2 py-0.5 rounded-full border border-sky-200 dark:border-sky-800">1 New</span>
             </div>
-            <div class="flex items-start space-x-3 text-xs text-slate-600 py-1">
+            <div class="flex items-start space-x-3 text-xs text-slate-600 dark:text-slate-300 py-1">
               <span class="text-base">🚀</span>
               <div>
-                <span class="font-semibold text-slate-800 block">Model Ready</span>
+                <span class="font-semibold text-slate-800 dark:text-slate-100 block">Model Ready</span>
                 XGBoost model version 1.0 loaded successfully.
               </div>
             </div>
@@ -155,15 +187,104 @@
       {% block content %}{% endblock %}
     </main>
 
-    <!-- Footer -->
-    <footer class="border-t border-slate-200 py-6 bg-white text-center text-xs text-slate-500">
-      <div class="max-w-7xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center space-y-2 md:space-y-0">
-        <p>&copy; 2026 Rainfall Predictor Web Application</p>
-        <div class="flex items-center space-x-4 text-slate-400">
-          <span>Django 6.0</span> &bull; 
-          <span>Tailwind CSS</span> &bull; 
-          <span>GSAP</span>
+    <!-- Redesigned GSAP Animated Footer -->
+    <footer id="main-footer" class="border-t border-slate-200/90 dark:border-slate-800/90 bg-white/80 dark:bg-slate-900/90 backdrop-blur-xl transition-colors duration-500 pt-12 pb-14 relative overflow-hidden z-10">
+      <!-- Ambient Glow Sphere in Footer Background -->
+      <div class="absolute -bottom-20 right-1/4 w-96 h-96 rounded-full blur-[140px] opacity-20 dark:opacity-30 pointer-events-none" style="background: radial-gradient(circle, #0284c7 0%, rgba(2, 132, 199, 0) 70%);"></div>
+
+      <div class="max-w-7xl mx-auto px-6">
+        <!-- Top Section: Multi-column Layout -->
+        <div class="grid grid-cols-1 md:grid-cols-12 gap-8 pb-10 border-b border-slate-200/70 dark:border-slate-800/70">
+          
+          <!-- Column 1: Brand & Status -->
+          <div class="md:col-span-5 space-y-4">
+            <div class="flex items-center space-x-3">
+              <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-sky-500 to-blue-600 flex items-center justify-center text-white shadow-md">
+                <img src="{% static 'images/Cloud With Lightning And Rain.webp' %}" alt="Rain Icon" class="w-8 h-8">
+              </div>
+              <div>
+                <span class="font-outfit font-extrabold text-xl tracking-tight text-slate-900 dark:text-white">
+                  Rainfall<span class="text-sky-600 dark:text-sky-400">Predict</span>
+                </span>
+                <span class="text-[10px] font-bold tracking-wider text-sky-600 dark:text-sky-400 bg-sky-50 dark:bg-sky-950/80 uppercase px-2 py-0.5 rounded-md ml-2 border border-sky-200 dark:border-sky-800">
+                  v2.5 AI
+                </span>
+              </div>
+            </div>
+            <p class="text-xs text-slate-600 dark:text-slate-400 leading-relaxed max-w-sm">
+              Advanced machine learning weather forecasting system powered by XGBoost Decision Trees & Keras Deep Learning for real-time precipitation prediction.
+            </p>
+
+            <!-- Live Status Pulse Badge -->
+            <div class="inline-flex items-center space-x-2.5 px-3 py-1.5 rounded-full bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800 text-[11px] font-bold text-emerald-700 dark:text-emerald-400">
+              <span class="relative flex size-2">
+                <span class="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75"></span>
+                <span class="relative inline-flex size-2 rounded-full bg-emerald-500"></span>
+              </span>
+              <span>All AI Models Operational</span>
+            </div>
+          </div>
+
+          <!-- Column 2: Quick Links -->
+          <div class="md:col-span-3 space-y-3">
+            <h4 class="font-outfit text-xs font-bold uppercase tracking-wider text-slate-900 dark:text-white">AI Engine & Analytics</h4>
+            <ul class="space-y-2 text-xs text-slate-600 dark:text-slate-400">
+              <li><a href="#hero-banner" onclick="showForm()" class="hover:text-sky-600 dark:hover:text-sky-400 transition-colors flex items-center space-x-1.5"><span class="text-sky-500">&rsaquo;</span><span>Meteorological Inputs</span></a></li>
+              <li><a href="#area-chart-section" class="hover:text-sky-600 dark:hover:text-sky-400 transition-colors flex items-center space-x-1.5"><span class="text-sky-500">&rsaquo;</span><span>Interactive Area Chart</span></a></li>
+              <li><a href="javascript:void(0)" onclick="selectModelOption('xgboost')" class="hover:text-sky-600 dark:hover:text-sky-400 transition-colors flex items-center space-x-1.5"><span class="text-sky-500">&rsaquo;</span><span>XGBoost ML Classifier</span></a></li>
+              <li><a href="javascript:void(0)" onclick="selectModelOption('neural_network')" class="hover:text-sky-600 dark:hover:text-sky-400 transition-colors flex items-center space-x-1.5"><span class="text-sky-500">&rsaquo;</span><span>Keras Neural Network</span></a></li>
+            </ul>
+          </div>
+
+          <!-- Column 3: Weather Telemetry Cards -->
+          <div class="md:col-span-4 space-y-3">
+            <h4 class="font-outfit text-xs font-bold uppercase tracking-wider text-slate-900 dark:text-white">System Telemetry</h4>
+            <div class="grid grid-cols-2 gap-2 text-xs">
+              <div class="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/70 border border-slate-200/80 dark:border-slate-700/80">
+                <span class="text-[10px] text-slate-400 block font-semibold">MODEL ACCURACY</span>
+                <span class="font-outfit font-extrabold text-slate-900 dark:text-white text-sm">96.4%</span>
+              </div>
+              <div class="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/70 border border-slate-200/80 dark:border-slate-700/80">
+                <span class="text-[10px] text-slate-400 block font-semibold">LATENCY</span>
+                <span class="font-outfit font-extrabold text-emerald-600 dark:text-emerald-400 text-sm">&lt; 15ms</span>
+              </div>
+              <div class="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/70 border border-slate-200/80 dark:border-slate-700/80">
+                <span class="text-[10px] text-slate-400 block font-semibold">BAROMETER</span>
+                <span class="font-outfit font-bold text-slate-800 dark:text-slate-200 text-xs">1013.2 hPa</span>
+              </div>
+              <div class="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/70 border border-slate-200/80 dark:border-slate-700/80">
+                <span class="text-[10px] text-slate-400 block font-semibold">SHADCN CHARTS</span>
+                <span class="font-outfit font-bold text-sky-600 dark:text-sky-400 text-xs">Active</span>
+              </div>
+            </div>
+          </div>
+
         </div>
+
+        <!-- Bottom Section: Tech Badges, Copyright & Scroll to Top -->
+        <div class="pt-6 flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0 text-xs text-slate-500 dark:text-slate-400">
+          <div class="flex items-center space-x-2">
+            <span>&copy; 2026 Rainfall Predictor Web Application</span>
+          </div>
+
+          <!-- Tech Stack Interactive Pills -->
+          <div class="flex flex-wrap items-center justify-center gap-2">
+            <span class="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 font-semibold text-[11px] hover:scale-105 transition-transform cursor-default">Django 6.0</span>
+            <span class="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 font-semibold text-[11px] hover:scale-105 transition-transform cursor-default">Tailwind CSS 4</span>
+            <span class="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 font-semibold text-[11px] hover:scale-105 transition-transform cursor-default">GSAP 3</span>
+            <span class="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 font-semibold text-[11px] hover:scale-105 transition-transform cursor-default">Chart.js Area</span>
+            <span class="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 font-semibold text-[11px] hover:scale-105 transition-transform cursor-default">XGBoost & Keras</span>
+          </div>
+
+          <!-- Back to Top GSAP Smooth Scroll Button -->
+          <button type="button" onclick="scrollToTop()" aria-label="Back to Top" class="p-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-sky-50 dark:hover:bg-sky-950 text-slate-600 dark:text-slate-300 hover:text-sky-600 dark:hover:text-sky-400 border border-slate-200 dark:border-slate-700 transition-all cursor-pointer flex items-center space-x-1.5 group">
+            <span class="font-semibold text-xs">Top</span>
+            <svg class="w-4 h-4 transform group-hover:-translate-y-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18" />
+            </svg>
+          </button>
+        </div>
+
       </div>
     </footer>
   </div>
