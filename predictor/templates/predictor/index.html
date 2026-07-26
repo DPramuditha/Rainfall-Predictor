@@ -120,6 +120,7 @@
 
         <form id="prediction-form" method="POST" action="." class="space-y-6">
           {% csrf_token %}
+          <input type="hidden" name="model_choice" id="id_model_choice" value="{{ selected_model|default:'xgboost' }}">
 
           <!-- Group 1: General & Pressure -->
           <div>
@@ -248,5 +249,5 @@
 {% endblock %}
 
 {% block extra_scripts %}
-<script src="{% static 'js/main.js' %}?v=11"></script>
+<script src="{% static 'js/main.js' %}?v=12"></script>
 {% endblock %}

@@ -27,7 +27,7 @@
       }
     }
   </script>
-  <link rel="stylesheet" href="{% static 'css/output.css' %}?v=11">
+  <link rel="stylesheet" href="{% static 'css/output.css' %}?v=12">
 
   <!-- GSAP Animation Library & Plugins (Local Vendor Files) -->
   <script src="{% static 'js/vendor/gsap.min.js' %}"></script>
@@ -62,13 +62,56 @@
       </div>
 
       <div class="flex items-center space-x-4">
-        <!-- XGBoost Status Badge -->
-        <div class="inline-flex items-center space-x-2 px-3 py-1.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 shadow-2xs">
-          <span class="relative flex size-3">
-            <span class="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-400 opacity-75"></span>
-            <span class="relative inline-flex size-3 rounded-full bg-green-500"></span>
-          </span>
-          <span>XGBoost Model Loaded</span>
+        <!-- Transitions.dev Model Selector Dropdown -->
+        <div class="relative">
+          <button id="model-dropdown-btn" type="button" aria-label="Select Model" class="inline-flex items-center space-x-2 px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all duration-300 cursor-pointer shadow-2xs {% if selected_model == 'neural_network' %}bg-indigo-50/90 text-indigo-900 border border-indigo-300 hover:bg-indigo-100/90{% else %}bg-emerald-50/90 text-emerald-900 border border-emerald-300 hover:bg-emerald-100/90{% endif %}">
+            <span class="relative flex size-3">
+              <span id="model-ping-ring" class="absolute inline-flex h-full w-full animate-ping rounded-full {% if selected_model == 'neural_network' %}bg-indigo-400{% else %}bg-green-400{% endif %} opacity-75"></span>
+              <span id="model-ping-dot" class="relative inline-flex size-3 rounded-full {% if selected_model == 'neural_network' %}bg-indigo-500{% else %}bg-green-500{% endif %}"></span>
+            </span>
+            <span id="nav-selected-model-text" class="flex items-center space-x-1">
+              {% if selected_model == 'neural_network' %}
+                <img src="{% static 'images/brain.webp' %}" alt="Neural Network" class="w-5 h-5 mr-1 inline-block object-contain">
+                <span>Neural Network Model</span>
+              {% else %}
+                <img src="{% static 'images/High Voltage.webp' %}" alt="XGBoost" class="w-5 h-5 mr-1 inline-block object-contain">
+                <span>XGBoost ML Model</span>
+              {% endif %}
+            </span>
+            <svg class="w-3.5 h-3.5 text-slate-500 transform transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
+
+          <!-- Transitions.dev Menu Dropdown -->
+          <div id="model-t-dropdown" class="t-dropdown absolute right-0 mt-2 w-64 bg-white/95 backdrop-blur-md rounded-2xl shadow-xl border border-slate-200/90 p-2 z-50" data-origin="top-right">
+            <div class="px-3 py-1.5 border-b border-slate-100 mb-1 flex items-center justify-between">
+              <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Select AI Model</span>
+              <span class="text-[10px] font-semibold text-sky-600 bg-sky-50 px-2 py-0.5 rounded-full border border-sky-100">Live Switch</span>
+            </div>
+            
+            <button type="button" onclick="selectModelOption('xgboost')" class="w-full text-left p-2.5 rounded-xl hover:bg-sky-50/80 transition-colors flex items-start space-x-2.5 group cursor-pointer">
+              <img src="{% static 'images/High Voltage.webp' %}" alt="XGBoost" class="w-6 h-6 mt-0.5 object-contain shrink-0">
+              <div class="flex-1">
+                <div class="flex items-center justify-between">
+                  <span class="font-outfit font-bold text-xs text-slate-800 group-hover:text-sky-600">XGBoost ML Model</span>
+                  <span id="check-xgboost" class="text-sky-600 font-bold text-xs {% if selected_model == 'neural_network' %}hidden{% endif %}">✓</span>
+                </div>
+                <p class="text-[11px] text-slate-500 leading-tight">Gradient Boosted Trees (High Speed)</p>
+              </div>
+            </button>
+
+            <button type="button" onclick="selectModelOption('neural_network')" class="w-full text-left p-2.5 rounded-xl hover:bg-sky-50/80 transition-colors flex items-start space-x-2.5 group cursor-pointer">
+              <img src="{% static 'images/brain.webp' %}" alt="Neural Network" class="w-6 h-6 mt-0.5 object-contain shrink-0">
+              <div class="flex-1">
+                <div class="flex items-center justify-between">
+                  <span class="font-outfit font-bold text-xs text-slate-800 group-hover:text-sky-600">Neural Network Model</span>
+                  <span id="check-neural_network" class="text-sky-600 font-bold text-xs {% if selected_model != 'neural_network' %}hidden{% endif %}">✓</span>
+                </div>
+                <p class="text-[11px] text-slate-500 leading-tight">Keras Deep Learning (.keras)</p>
+              </div>
+            </button>
+          </div>
         </div>
 
         <!-- Interactive Notification Bell with Animated Badge -->
@@ -127,6 +170,35 @@
     </div>
   </div>
 
+  <!-- Fixed GSAP Pill Toast Notification Container (Bottom Right) -->
+  <div id="toast-notification-container" class="fixed bottom-6 right-6 z-50 pointer-events-none flex flex-col space-y-3 items-end">
+    <div id="toast-pill" class="hidden pointer-events-auto inline-flex items-center space-x-3.5 px-4.5 py-3 rounded-full bg-slate-900/95 backdrop-blur-xl border border-slate-700/60 shadow-2xl text-white max-w-md">
+      <!-- Circle Icon Container -->
+      <div id="toast-icon-bg" class="w-8 h-8 rounded-full bg-emerald-500/20 border border-emerald-400/30 flex items-center justify-center shrink-0">
+        <span id="toast-icon" class="text-sm">⚡</span>
+      </div>
+      
+      <!-- Text Description -->
+      <div class="flex flex-col pr-1">
+        <span id="toast-title" class="font-outfit font-bold text-xs text-white tracking-wide">Model Ready</span>
+        <span id="toast-desc" class="text-[11px] text-slate-300 font-medium leading-tight">XGBoost & Keras Neural Network loaded</span>
+      </div>
+
+      <!-- Close Button -->
+      <button type="button" onclick="hideToastNotification()" aria-label="Close notification" class="ml-2 text-slate-400 hover:text-white transition-colors cursor-pointer p-1 rounded-full hover:bg-white/10">
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  <script>
+    window.STATIC_IMAGES = {
+      brain: "{% static 'images/brain.webp' %}",
+      highVoltage: "{% static 'images/High Voltage.webp' %}"
+    };
+  </script>
   {% block extra_scripts %}{% endblock %}
 </body>
 </html>

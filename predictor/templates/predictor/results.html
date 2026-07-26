@@ -11,7 +11,13 @@
         </span>
         <span class="font-outfit text-sm font-bold text-slate-800">Prediction Output</span>
       </div>
-      <span class="text-[11px] font-semibold text-sky-600 bg-sky-50 px-2.5 py-0.5 rounded-full border border-sky-200 uppercase tracking-wider">XGBoost ML</span>
+      <span id="model-badge" class="text-[11px] font-semibold {% if result %}{% if result.model_used == 'neural_network' %}text-indigo-700 bg-indigo-50 border-indigo-200{% else %}text-emerald-700 bg-emerald-50 border-emerald-200{% endif %}{% else %}{% if selected_model == 'neural_network' %}text-indigo-700 bg-indigo-50 border-indigo-200{% else %}text-emerald-700 bg-emerald-50 border-emerald-200{% endif %}{% endif %} px-2.5 py-0.5 rounded-full border uppercase tracking-wider">
+        {% if result %}
+          {{ result.model_display_name }}
+        {% else %}
+          {% if selected_model == 'neural_network' %}Neural Network (Keras DL){% else %}XGBoost ML Model{% endif %}
+        {% endif %}
+      </span>
     </div>
 
     <!-- INITIAL PLACEHOLDER (Visible before first prediction calculation) -->

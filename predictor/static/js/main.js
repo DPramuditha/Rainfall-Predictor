@@ -209,6 +209,16 @@ function displayResult(result) {
   if (rainMetric) rainMetric.innerText = `${rainProb}%`;
   if (noRainMetric) noRainMetric.innerText = `${result.no_rain_probability}%`;
 
+  const modelBadge = document.getElementById('model-badge');
+  if (modelBadge && result.model_display_name) {
+    modelBadge.innerText = result.model_display_name;
+    if (result.model_used === 'neural_network') {
+      modelBadge.className = 'text-[11px] font-semibold text-indigo-700 bg-indigo-50 border-indigo-200 px-2.5 py-0.5 rounded-full border uppercase tracking-wider transition-colors';
+    } else {
+      modelBadge.className = 'text-[11px] font-semibold text-emerald-700 bg-emerald-50 border-emerald-200 px-2.5 py-0.5 rounded-full border uppercase tracking-wider transition-colors';
+    }
+  }
+
   // Hide placeholder and reveal result panel on right side
   if (placeholder) placeholder.classList.add('hidden');
   if (resultsContent) resultsContent.classList.remove('hidden');
@@ -228,6 +238,33 @@ function displayResult(result) {
     }
   } else if (progressBar) {
     progressBar.style.width = `${rainProb}%`;
+  }
+
+  // Trigger GSAP Pill Toast Notification (Bottom Right)
+  if (typeof window.showToastNotification === 'function') {
+    window.showToastNotification(
+      'Prediction Complete',
+      result.will_rain ? `Rainfall Expected (${result.rain_probability}%)` : `No Rain Expected (${result.no_rain_probability}%)`,
+      result.will_rain ? '🌧️' : '☀️',
+      result.will_rain ? 'rain' : 'norain'
+    );
+  }
+}
+
+/**
+ * Updates UI styling when user switches between XGBoost and Neural Network models
+ * @param {string} selected - 'xgboost' or 'neural_network'
+ */
+function updateModelSelection(selected) {
+  const labelXgb = document.getElementById('label-model-xgboost');
+  const labelNn = document.getElementById('label-model-nn');
+
+  if (selected === 'neural_network') {
+    if (labelNn) labelNn.className = 'relative flex flex-col p-3 rounded-xl border-2 cursor-pointer transition-all duration-300 border-sky-500 bg-white shadow-xs';
+    if (labelXgb) labelXgb.className = 'relative flex flex-col p-3 rounded-xl border-2 cursor-pointer transition-all duration-300 border-slate-200 bg-slate-100/60 hover:bg-white';
+  } else {
+    if (labelXgb) labelXgb.className = 'relative flex flex-col p-3 rounded-xl border-2 cursor-pointer transition-all duration-300 border-sky-500 bg-white shadow-xs';
+    if (labelNn) labelNn.className = 'relative flex flex-col p-3 rounded-xl border-2 cursor-pointer transition-all duration-300 border-slate-200 bg-slate-100/60 hover:bg-white';
   }
 }
 
@@ -395,12 +432,216 @@ function initWeatherIconSlider() {
   gsap.delayedCall(2.6, cycleNextIcon);
 }
 
+// --- Transitions.dev Model Selector Dropdown Handler ---
+function initModelDropdown() {
+  const modelBtn = document.getElementById('model-dropdown-btn');
+  const dropdownMenu = document.getElementById('model-t-dropdown');
+  if (!modelBtn || !dropdownMenu) return;
+
+  let closeTimer = null;
+
+  function openDropdown() {
+    if (closeTimer) {
+      clearTimeout(closeTimer);
+      closeTimer = null;
+    }
+    dropdownMenu.classList.remove('is-closing');
+    dropdownMenu.classList.add('is-open');
+  }
+
+  function closeDropdown() {
+    if (!dropdownMenu.classList.contains('is-open')) return;
+    dropdownMenu.classList.remove('is-open');
+    dropdownMenu.classList.add('is-closing');
+
+    closeTimer = setTimeout(() => {
+      dropdownMenu.classList.remove('is-closing');
+      closeTimer = null;
+    }, 150); // Matches --dropdown-close-dur (150ms)
+  }
+
+  function toggleDropdown() {
+    if (dropdownMenu.classList.contains('is-open')) {
+      closeDropdown();
+    } else {
+      openDropdown();
+    }
+  }
+
+  modelBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    toggleDropdown();
+  });
+
+  document.addEventListener('click', (e) => {
+    if (!dropdownMenu.contains(e.target) && !modelBtn.contains(e.target)) {
+      closeDropdown();
+    }
+  });
+
+  window.selectModelOption = function(modelKey) {
+    const hiddenInput = document.getElementById('id_model_choice');
+    const navText = document.getElementById('nav-selected-model-text');
+    const checkXgb = document.getElementById('check-xgboost');
+    const checkNn = document.getElementById('check-neural_network');
+    const modelBtn = document.getElementById('model-dropdown-btn');
+    const pingRing = document.getElementById('model-ping-ring');
+    const pingDot = document.getElementById('model-ping-dot');
+
+    if (hiddenInput) {
+      hiddenInput.value = modelKey;
+    }
+
+    if (navText) {
+      const brainImg = window.STATIC_IMAGES?.brain || '';
+      const hvImg = window.STATIC_IMAGES?.highVoltage || '';
+      if (modelKey === 'neural_network') {
+        navText.innerHTML = `<img src="${brainImg}" alt="Neural Network" class="w-5 h-5 mr-1 inline-block object-contain"><span>Neural Network</span>`;
+      } else {
+        navText.innerHTML = `<img src="${hvImg}" alt="XGBoost" class="w-5 h-5 mr-1 inline-block object-contain"><span>XGBoost ML</span>`;
+      }
+    }
+
+    const modelBadge = document.getElementById('model-badge');
+    if (modelBadge) {
+      if (modelKey === 'neural_network') {
+        modelBadge.innerText = 'Neural Network (Keras DL)';
+        modelBadge.className = 'text-[11px] font-semibold text-indigo-700 bg-indigo-50 border-indigo-200 px-2.5 py-0.5 rounded-full border uppercase tracking-wider transition-colors';
+      } else {
+        modelBadge.innerText = 'XGBoost ML Model';
+        modelBadge.className = 'text-[11px] font-semibold text-emerald-700 bg-emerald-50 border-emerald-200 px-2.5 py-0.5 rounded-full border uppercase tracking-wider transition-colors';
+      }
+    }
+
+    if (checkXgb && checkNn) {
+      if (modelKey === 'neural_network') {
+        checkXgb.classList.add('hidden');
+        checkNn.classList.remove('hidden');
+      } else {
+        checkXgb.classList.remove('hidden');
+        checkNn.classList.add('hidden');
+      }
+    }
+
+    // Dynamic border, background, and ping ring/dot color switching
+    if (modelBtn) {
+      if (modelKey === 'neural_network') {
+        modelBtn.className = 'inline-flex items-center space-x-2 px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all duration-300 cursor-pointer shadow-2xs bg-indigo-50/90 text-indigo-900 border border-indigo-300 hover:bg-indigo-100/90';
+      } else {
+        modelBtn.className = 'inline-flex items-center space-x-2 px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all duration-300 cursor-pointer shadow-2xs bg-emerald-50/90 text-emerald-900 border border-emerald-300 hover:bg-emerald-100/90';
+      }
+    }
+
+    if (pingRing && pingDot) {
+      if (modelKey === 'neural_network') {
+        pingRing.className = 'absolute inline-flex h-full w-full animate-ping rounded-full bg-indigo-400 opacity-75';
+        pingDot.className = 'relative inline-flex size-3 rounded-full bg-indigo-500';
+      } else {
+        pingRing.className = 'absolute inline-flex h-full w-full animate-ping rounded-full bg-green-400 opacity-75';
+        pingDot.className = 'relative inline-flex size-3 rounded-full bg-green-500';
+      }
+    }
+
+    // Trigger Pill Toast Notification (Bottom Right)
+    if (typeof window.showToastNotification === 'function') {
+      if (modelKey === 'neural_network') {
+        window.showToastNotification('Model Switched', 'Neural Network (Keras DL) model active', 'brain', 'nn');
+      } else {
+        window.showToastNotification('Model Switched', 'XGBoost ML model active', 'highVoltage', 'info');
+      }
+    }
+
+    closeDropdown();
+  };
+}
+
+// --- Fixed GSAP Pill Toast Notification Functions (Bottom Right) ---
+let toastTimeout = null;
+
+window.showToastNotification = function(title, desc, icon = 'highVoltage', type = 'info') {
+  const toastPill = document.getElementById('toast-pill');
+  const toastTitle = document.getElementById('toast-title');
+  const toastDesc = document.getElementById('toast-desc');
+  const toastIcon = document.getElementById('toast-icon');
+  const toastIconBg = document.getElementById('toast-icon-bg');
+
+  if (!toastPill || !toastTitle || !toastDesc) return;
+
+  if (toastTimeout) {
+    clearTimeout(toastTimeout);
+    toastTimeout = null;
+  }
+
+  toastTitle.innerText = title;
+  toastDesc.innerText = desc;
+
+  const brainImg = window.STATIC_IMAGES?.brain || '';
+  const hvImg = window.STATIC_IMAGES?.highVoltage || '';
+
+  if (toastIcon) {
+    if (type === 'nn' || icon === 'brain') {
+      toastIcon.innerHTML = `<img src="${brainImg}" alt="Neural Network" class="w-5 h-5 object-contain">`;
+    } else if (type === 'info' || type === 'xgboost' || icon === 'highVoltage') {
+      toastIcon.innerHTML = `<img src="${hvImg}" alt="XGBoost" class="w-5 h-5 object-contain">`;
+    } else {
+      toastIcon.innerHTML = `<span class="text-sm">${icon}</span>`;
+    }
+  }
+
+  if (toastIconBg) {
+    if (type === 'rain') {
+      toastIconBg.className = 'w-8 h-8 rounded-full bg-sky-500/20 border border-sky-400/40 flex items-center justify-center shrink-0';
+    } else if (type === 'norain') {
+      toastIconBg.className = 'w-8 h-8 rounded-full bg-amber-500/20 border border-amber-400/40 flex items-center justify-center shrink-0';
+    } else if (type === 'nn') {
+      toastIconBg.className = 'w-8 h-8 rounded-full bg-indigo-500/20 border border-indigo-400/40 flex items-center justify-center shrink-0';
+    } else {
+      toastIconBg.className = 'w-8 h-8 rounded-full bg-emerald-500/20 border border-emerald-400/30 flex items-center justify-center shrink-0';
+    }
+  }
+
+  toastPill.classList.remove('hidden');
+
+  if (typeof gsap !== 'undefined') {
+    gsap.killTweensOf(toastPill);
+    gsap.fromTo(toastPill,
+      { y: 50, opacity: 0, scale: 0.88 },
+      { y: 0, opacity: 1, scale: 1, duration: 0.5, ease: 'back.out(1.7)' }
+    );
+  }
+
+  toastTimeout = setTimeout(() => {
+    window.hideToastNotification();
+  }, 4200);
+};
+
+window.hideToastNotification = function() {
+  const toastPill = document.getElementById('toast-pill');
+  if (!toastPill || toastPill.classList.contains('hidden')) return;
+
+  if (typeof gsap !== 'undefined') {
+    gsap.to(toastPill, {
+      y: 35,
+      opacity: 0,
+      scale: 0.9,
+      duration: 0.35,
+      ease: 'power2.in',
+      onComplete: () => {
+        toastPill.classList.add('hidden');
+      }
+    });
+  } else {
+    toastPill.classList.add('hidden');
+  }
+};
+
 document.addEventListener('DOMContentLoaded', () => {
-  // Initialize GSAP ScrollSmoother, Ambient Background, Rolling Title & Weather Icon Slider
+  // Initialize GSAP ScrollSmoother, Ambient Background, Rolling Title, Weather Slider & Model Dropdown
   initScrollSmoother();
   initAmbientBackground();
   initRollingTitleAnimation();
   initWeatherIconSlider();
+  initModelDropdown();
 
   // GSAP Initial Entrance Animations with clearProps to prevent residual style locks
   if (typeof gsap !== 'undefined') {
