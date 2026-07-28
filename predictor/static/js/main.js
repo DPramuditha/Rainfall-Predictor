@@ -154,6 +154,11 @@ function setTheme(theme, triggerToast = false) {
     }
   }
 
+  // Update ambient glow gradient colors for bg-glow-1, bg-glow-2, bg-glow-3
+  if (lastPredictionResult) {
+    updateAmbientGlowColors(lastPredictionResult.will_rain, theme === 'dark');
+  }
+
   if (triggerToast && typeof window.showToastNotification === 'function') {
     window.showToastNotification(
       theme === 'dark' ? 'Dark Mode Activated' : 'Light Mode Activated',
@@ -161,6 +166,81 @@ function setTheme(theme, triggerToast = false) {
       theme === 'dark' ? '🌙' : '☀️',
       theme === 'dark' ? 'rain' : 'norain'
     );
+  }
+}
+
+let lastPredictionResult = null;
+
+/**
+ * Dynamically morphs ambient background radial glow colors (bg-glow-1, bg-glow-2, bg-glow-3)
+ * based on prediction outcome (willRain) and theme (isDark) using GSAP.
+ */
+function updateAmbientGlowColors(willRain, isDark) {
+  const glow1 = document.getElementById('bg-glow-1');
+  const glow2 = document.getElementById('bg-glow-2');
+  const glow3 = document.getElementById('bg-glow-3');
+
+  if (!glow1 && !glow2 && !glow3) return;
+
+  let color1, color2, color3;
+  let op1, op2, op3;
+
+  if (willRain) {
+    // Rainy Atmosphere: Ocean Sapphire, Electric Indigo, Atmospheric Teal
+    color1 = isDark ? '#38bdf8' : '#0284c7';
+    color2 = isDark ? '#6366f1' : '#2563eb';
+    color3 = isDark ? '#2dd4bf' : '#0d9488';
+    op1 = isDark ? 0.55 : 0.70;
+    op2 = isDark ? 0.50 : 0.65;
+    op3 = isDark ? 0.45 : 0.60;
+  } else {
+    // Dry / Sunny Atmosphere: Golden Amber, Sunburst Orange, Emerald Meadow
+    color1 = isDark ? '#fbbf24' : '#f59e0b';
+    color2 = isDark ? '#fb923c' : '#ea580c';
+    color3 = isDark ? '#34d399' : '#10b981';
+    op1 = isDark ? 0.50 : 0.65;
+    op2 = isDark ? 0.45 : 0.60;
+    op3 = isDark ? 0.40 : 0.55;
+  }
+
+  if (typeof gsap !== 'undefined') {
+    if (glow1) {
+      gsap.to(glow1, {
+        background: `radial-gradient(circle, ${color1} 0%, rgba(0, 0, 0, 0) 70%)`,
+        opacity: op1,
+        duration: 1.2,
+        ease: 'power2.out'
+      });
+    }
+    if (glow2) {
+      gsap.to(glow2, {
+        background: `radial-gradient(circle, ${color2} 0%, rgba(0, 0, 0, 0) 70%)`,
+        opacity: op2,
+        duration: 1.2,
+        ease: 'power2.out'
+      });
+    }
+    if (glow3) {
+      gsap.to(glow3, {
+        background: `radial-gradient(circle, ${color3} 0%, rgba(0, 0, 0, 0) 70%)`,
+        opacity: op3,
+        duration: 1.2,
+        ease: 'power2.out'
+      });
+    }
+  } else {
+    if (glow1) {
+      glow1.style.background = `radial-gradient(circle, ${color1} 0%, rgba(0, 0, 0, 0) 70%)`;
+      glow1.style.opacity = op1;
+    }
+    if (glow2) {
+      glow2.style.background = `radial-gradient(circle, ${color2} 0%, rgba(0, 0, 0, 0) 70%)`;
+      glow2.style.opacity = op2;
+    }
+    if (glow3) {
+      glow3.style.background = `radial-gradient(circle, ${color3} 0%, rgba(0, 0, 0, 0) 70%)`;
+      glow3.style.opacity = op3;
+    }
   }
 }
 
@@ -238,22 +318,41 @@ function displayResult(result) {
   const willRain = result.will_rain;
   const isDark = document.documentElement.classList.contains('dark');
 
+  // Cache prediction result and morph ambient glow colors (bg-glow-1, bg-glow-2, bg-glow-3)
+  lastPredictionResult = result;
+  updateAmbientGlowColors(willRain, isDark);
+
+  const heroImg = document.getElementById('verdict-hero-img');
+  const bgText = document.getElementById('verdict-bg-text');
+  const pillBadge = document.getElementById('verdict-pill-badge');
+  const staticImgPrefix = '/static/images/';
+
   if (willRain) {
     // --- Rainy Atmosphere Theme ---
     if (dotPing) dotPing.className = 'absolute inline-flex h-full w-full animate-ping rounded-full bg-blue-400 opacity-75 transition-colors duration-500';
     if (dotSolid) dotSolid.className = 'relative inline-flex size-3 rounded-full bg-blue-600 transition-colors duration-500';
-    if (verdictBanner) verdictBanner.className = 'p-5 rounded-2xl text-center border badge-rain shadow-sm';
-    if (verdictIcon) verdictIcon.innerText = '🌧️';
+    if (verdictBanner) verdictBanner.className = 'relative p-6 rounded-3xl text-center border transition-all duration-500 overflow-hidden shadow-lg badge-rain';
+    
+    if (heroImg) {
+      heroImg.src = `${staticImgPrefix}Cloud With Rain.webp`;
+      heroImg.alt = 'Rainfall Expected';
+    }
+    if (bgText) {
+      bgText.innerText = 'PRECIPITATION';
+      bgText.className = 'absolute inset-0 flex items-center justify-center font-outfit font-black text-6xl md:text-7xl uppercase tracking-tighter opacity-15 dark:opacity-20 pointer-events-none select-none transition-colors duration-500 text-blue-900 dark:text-blue-300';
+    }
+    if (pillBadge) {
+      pillBadge.innerText = '🌧️ Rain Forecast';
+      pillBadge.className = 'text-[10px] font-extrabold uppercase tracking-widest px-3 py-1 rounded-full border shadow-2xs transition-colors bg-blue-500/10 text-blue-800 dark:text-blue-200 border-blue-300 dark:border-blue-700';
+    }
     if (verdictTitle) {
       verdictTitle.innerText = 'Rainfall Expected';
-      verdictTitle.className = 'font-outfit text-2xl font-extrabold mb-1 text-blue-900 dark:text-blue-200';
+      verdictTitle.className = 'font-outfit text-2xl md:text-3xl font-black tracking-tight text-blue-950 dark:text-blue-100';
     }
     if (verdictSubtitle) {
       verdictSubtitle.innerText = `High confidence prediction (${rainProb}% likelihood of rain)`;
-      verdictSubtitle.className = 'text-xs font-semibold text-blue-700 dark:text-blue-300';
+      verdictSubtitle.className = 'text-xs font-semibold max-w-xs mx-auto leading-relaxed text-blue-700 dark:text-blue-300';
     }
-
-    if (progressBar) progressBar.className = 'bg-gradient-to-r from-sky-500 to-blue-600 h-full rounded-full transition-all duration-700';
 
     if (pageBody) {
       const rainyBg = isDark ? '#091b34' : '#f0f9ff';
@@ -264,27 +363,33 @@ function displayResult(result) {
       }
     }
     if (heroBanner) heroBanner.style.borderColor = isDark ? '#1e3a8a' : '#bfdbfe';
-    if (typeof gsap !== 'undefined') {
-      if (bgGlow1) gsap.to(bgGlow1, { opacity: isDark ? 0.6 : 0.75, duration: 0.8 });
-      if (bgGlow2) gsap.to(bgGlow2, { opacity: isDark ? 0.55 : 0.7, duration: 0.8 });
-    }
 
   } else {
     // --- Sunny / Dry Atmosphere Theme ---
     if (dotPing) dotPing.className = 'absolute inline-flex h-full w-full animate-ping rounded-full bg-amber-400 opacity-75 transition-colors duration-500';
     if (dotSolid) dotSolid.className = 'relative inline-flex size-3 rounded-full bg-amber-500 transition-colors duration-500';
-    if (verdictBanner) verdictBanner.className = 'p-5 rounded-2xl text-center border badge-norain shadow-sm';
-    if (verdictIcon) verdictIcon.innerText = '☀️';
+    if (verdictBanner) verdictBanner.className = 'relative p-6 rounded-3xl text-center border transition-all duration-500 overflow-hidden shadow-lg badge-norain';
+    
+    if (heroImg) {
+      heroImg.src = `${staticImgPrefix}Sun Behind Small Cloud.webp`;
+      heroImg.alt = 'No Rain Expected';
+    }
+    if (bgText) {
+      bgText.innerText = 'CLEAR SKIES';
+      bgText.className = 'absolute inset-0 flex items-center justify-center font-outfit font-black text-6xl md:text-7xl uppercase tracking-tighter opacity-15 dark:opacity-20 pointer-events-none select-none transition-colors duration-500 text-amber-900 dark:text-amber-300';
+    }
+    if (pillBadge) {
+      pillBadge.innerText = '☀️ Dry Forecast';
+      pillBadge.className = 'text-[10px] font-extrabold uppercase tracking-widest px-3 py-1 rounded-full border shadow-2xs transition-colors bg-amber-500/10 text-amber-900 dark:text-amber-200 border-amber-300 dark:border-amber-700';
+    }
     if (verdictTitle) {
       verdictTitle.innerText = 'No Rain Expected';
-      verdictTitle.className = 'font-outfit text-2xl font-extrabold mb-1 text-amber-900 dark:text-amber-200';
+      verdictTitle.className = 'font-outfit text-2xl md:text-3xl font-black tracking-tight text-amber-950 dark:text-amber-100';
     }
     if (verdictSubtitle) {
       verdictSubtitle.innerText = `Clear weather likely (${result.no_rain_probability}% chance of dry weather)`;
-      verdictSubtitle.className = 'text-xs font-semibold text-amber-700 dark:text-amber-300';
+      verdictSubtitle.className = 'text-xs font-semibold max-w-xs mx-auto leading-relaxed text-amber-800 dark:text-amber-300';
     }
-
-    if (progressBar) progressBar.className = 'bg-gradient-to-r from-amber-400 to-emerald-500 h-full rounded-full transition-all duration-700';
 
     if (pageBody) {
       const dryBg = isDark ? '#1c1917' : '#fffbeb';
@@ -295,10 +400,31 @@ function displayResult(result) {
       }
     }
     if (heroBanner) heroBanner.style.borderColor = isDark ? '#78350f' : '#fde68a';
-    if (typeof gsap !== 'undefined') {
-      if (bgGlow1) gsap.to(bgGlow1, { opacity: isDark ? 0.55 : 0.7, duration: 0.8 });
-      if (bgGlow2) gsap.to(bgGlow2, { opacity: isDark ? 0.5 : 0.65, duration: 0.8 });
-    }
+  }
+
+  // GSAP 3D Floating Levitation & Scale Pop Animation for Weather Image
+  if (typeof gsap !== 'undefined' && heroImg) {
+    gsap.killTweensOf(heroImg);
+    gsap.fromTo(heroImg,
+      { scale: 0.55, rotation: -10, opacity: 0 },
+      { 
+        scale: 1, 
+        rotation: 0, 
+        opacity: 1, 
+        duration: 0.75, 
+        ease: 'back.out(1.8)',
+        onComplete: () => {
+          gsap.to(heroImg, {
+            y: -7,
+            rotation: 2,
+            duration: 2.2,
+            repeat: -1,
+            yoyo: true,
+            ease: 'sine.inOut'
+          });
+        }
+      }
+    );
   }
 
   if (rainMetric) rainMetric.innerText = `${rainProb}%`;
@@ -1043,11 +1169,10 @@ document.addEventListener('DOMContentLoaded', () => {
   const initialTheme = localStorage.getItem('theme') || (document.documentElement.classList.contains('dark') ? 'dark' : 'light');
   updateThemeUI(initialTheme);
 
-  // Initialize GSAP ScrollSmoother, Ambient Background, Rolling Title, Weather Slider, Model Dropdown & Area Chart
+  // Initialize GSAP ScrollSmoother, Ambient Background, Rolling Title, Model Dropdown & Area Chart
   initScrollSmoother();
   initAmbientBackground();
   initRollingTitleAnimation();
-  initWeatherIconSlider();
   initModelDropdown();
   initAreaChart();
 
@@ -1058,6 +1183,105 @@ document.addEventListener('DOMContentLoaded', () => {
     const areaChartEl = document.getElementById('area-chart-section');
     const footerEl = document.getElementById('main-footer');
     
+    // Continuous GSAP 3D levitation for Verdict WebP weather image
+    const initHeroImg = document.getElementById('verdict-hero-img');
+    if (initHeroImg) {
+      gsap.to(initHeroImg, {
+        y: -7,
+        rotation: 2,
+        duration: 2.2,
+        repeat: -1,
+        yoyo: true,
+        ease: 'sine.inOut'
+      });
+    }
+
+    // GSAP 3D Hero Weather Image Carousel (3 images with 3D cross-fade transitions)
+    const heroWeatherSlides = document.querySelectorAll('.hero-weather-slide');
+    if (heroWeatherSlides.length >= 2) {
+      // Set initial state: all hidden except first
+      gsap.set(heroWeatherSlides, { autoAlpha: 0, scale: 0.4, rotationY: -90 });
+      gsap.set(heroWeatherSlides[0], { autoAlpha: 1, scale: 1, rotationY: 0 });
+
+      let heroSlideIndex = 0;
+      let heroLevitationTween = null;
+
+      // Start levitation on the active slide
+      function startHeroLevitation(slide) {
+        if (heroLevitationTween) heroLevitationTween.kill();
+        gsap.set(slide, { y: 0, rotation: 0 });
+        heroLevitationTween = gsap.to(slide, {
+          y: -10,
+          rotation: 3,
+          duration: 2.4,
+          repeat: -1,
+          yoyo: true,
+          ease: 'sine.inOut'
+        });
+      }
+
+      // Entrance pop for the very first slide
+      gsap.fromTo(heroWeatherSlides[0],
+        { scale: 0.5, autoAlpha: 0, rotationY: -45 },
+        {
+          scale: 1, autoAlpha: 1, rotationY: 0,
+          duration: 0.9, ease: 'back.out(1.8)', delay: 0.3,
+          onComplete: () => startHeroLevitation(heroWeatherSlides[0])
+        }
+      );
+
+      // 3D Cross-fade cycle function
+      function cycleHeroWeatherSlide() {
+        const nextIndex = (heroSlideIndex + 1) % heroWeatherSlides.length;
+        const currentSlide = heroWeatherSlides[heroSlideIndex];
+        const nextSlide = heroWeatherSlides[nextIndex];
+
+        // Kill current levitation
+        if (heroLevitationTween) heroLevitationTween.kill();
+
+        const tl = gsap.timeline({
+          onComplete: () => {
+            heroSlideIndex = nextIndex;
+            startHeroLevitation(nextSlide);
+            gsap.delayedCall(3.5, cycleHeroWeatherSlide);
+          }
+        });
+
+        // Exit: current image spins out with 3D perspective
+        tl.to(currentSlide, {
+          autoAlpha: 0,
+          scale: 0.3,
+          rotationY: 70,
+          y: 15,
+          duration: 0.55,
+          ease: 'back.in(1.4)'
+        }, 0);
+
+        // Enter: next image pops in from opposite 3D perspective
+        tl.fromTo(nextSlide,
+          { autoAlpha: 0, scale: 1.3, rotationY: -60, y: -20 },
+          {
+            autoAlpha: 1, scale: 1, rotationY: 0, y: 0,
+            duration: 0.7, ease: 'back.out(1.6)',
+            immediateRender: false
+          },
+          0.3
+        );
+      }
+
+      // Start cycling after initial entrance + levitation settle time
+      gsap.delayedCall(3.8, cycleHeroWeatherSlide);
+    }
+
+    // GSAP Entrance for Hero Background Watermark Text
+    const heroBgText = document.getElementById('hero-bg-text');
+    if (heroBgText) {
+      gsap.fromTo(heroBgText,
+        { scale: 0.85, autoAlpha: 0 },
+        { scale: 1, autoAlpha: parseFloat(getComputedStyle(heroBgText).opacity) || 0.07, duration: 1.2, ease: 'power2.out', delay: 0.1 }
+      );
+    }
+
     // Initial Progress Bar & Number Counter animation on load if result exists
     const initProbText = document.getElementById('prob-percentage-text');
     const initProgressBar = document.getElementById('prob-progress-bar');

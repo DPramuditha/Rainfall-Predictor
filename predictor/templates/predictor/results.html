@@ -1,3 +1,4 @@
+{% load static %}
 <!-- PREDICTION RESULTS SECTION (Right Side Panel) -->
 <div id="results-section" class="transition-all duration-500">
   <div id="results-card" class="white-card rounded-2xl p-6 md:p-8 border border-slate-200 dark:border-slate-800 shadow-sm relative overflow-hidden">
@@ -40,23 +41,46 @@
     <!-- RESULT CONTENT PANEL (Revealed when prediction result is calculated) -->
     <div id="results-card-content" class="{% if not result %}hidden{% endif %} space-y-5">
       
-      <!-- Primary Verdict Badge -->
-      <div id="verdict-banner" class="p-5 rounded-2xl text-center border transition-all {% if result %}{% if result.will_rain %}badge-rain{% else %}badge-norain{% endif %}{% endif %}">
-        <div id="verdict-icon" class="text-4xl md:text-5xl mb-2">
-          {% if result %}{% if result.will_rain %}🌧️{% else %}☀️{% endif %}{% endif %}
+      <!-- Primary Verdict Banner with Layered 3D Animated WebP Image & Text Behind -->
+      <div id="verdict-banner" class="relative p-6 rounded-3xl text-center border transition-all duration-500 overflow-hidden shadow-lg {% if result %}{% if result.will_rain %}badge-rain{% else %}badge-norain{% endif %}{% endif %}">
+        
+        <!-- Background Layer: Watermark Text Behind Image -->
+        <div id="verdict-bg-text" class="absolute inset-0 flex items-center justify-center font-outfit font-black text-6xl md:text-7xl uppercase tracking-tighter opacity-15 dark:opacity-20 pointer-events-none select-none transition-colors duration-500 {% if result %}{% if result.will_rain %}text-blue-900 dark:text-blue-300{% else %}text-amber-900 dark:text-amber-300{% endif %}{% endif %}">
+          {% if result %}{% if result.will_rain %}PRECIPITATION{% else %}CLEAR SKIES{% endif %}{% else %}PREDICTION{% endif %}
         </div>
-        <h3 id="verdict-title" class="font-outfit text-2xl font-extrabold mb-1 {% if result %}{% if result.will_rain %}text-blue-900 dark:text-blue-200{% else %}text-amber-900 dark:text-amber-200{% endif %}{% endif %}">
-          {% if result %}{% if result.will_rain %}Rainfall Expected{% else %}No Rain Expected{% endif %}{% endif %}
-        </h3>
-        <p id="verdict-subtitle" class="text-xs font-semibold {% if result %}{% if result.will_rain %}text-blue-700 dark:text-blue-300{% else %}text-amber-700 dark:text-amber-300{% endif %}{% endif %}">
-          {% if result %}
-            {% if result.will_rain %}
-              High confidence prediction ({{ result.rain_probability }}% likelihood of rain)
-            {% else %}
-              Clear weather likely ({{ result.no_rain_probability }}% chance of dry weather)
+
+        <!-- Center 3D Floating WebP Weather Image -->
+        <div class="relative z-10 my-1 flex justify-center">
+          <div id="verdict-img-wrapper" class="relative w-32 h-32 md:w-36 md:h-36 flex items-center justify-center">
+            <img id="verdict-hero-img" 
+                 src="{% static 'images/' %}{% if result %}{% if result.will_rain %}Cloud With Rain.webp{% else %}Sun Behind Small Cloud.webp{% endif %}{% else %}Cloud With Rain.webp{% endif %}" 
+                 alt="Weather Verdict" 
+                 class="w-full h-full object-contain filter drop-shadow-xl transition-all duration-500 hover:scale-105" />
+          </div>
+        </div>
+
+        <!-- Foreground Content Layer: Title, Badge & Subtitle -->
+        <div class="relative z-10 space-y-1">
+          <div class="inline-block mb-1">
+            <span id="verdict-pill-badge" class="text-[10px] font-extrabold uppercase tracking-widest px-3 py-1 rounded-full border shadow-2xs transition-colors {% if result %}{% if result.will_rain %}bg-blue-500/10 text-blue-800 dark:text-blue-200 border-blue-300 dark:border-blue-700{% else %}bg-amber-500/10 text-amber-900 dark:text-amber-200 border-amber-300 dark:border-amber-700{% endif %}{% endif %}">
+              {% if result %}{% if result.will_rain %}🌧️ Rain Forecast{% else %}☀️ Dry Forecast{% endif %}{% endif %}
+            </span>
+          </div>
+
+          <h3 id="verdict-title" class="font-outfit text-2xl md:text-3xl font-black tracking-tight {% if result %}{% if result.will_rain %}text-blue-950 dark:text-blue-100{% else %}text-amber-950 dark:text-amber-100{% endif %}{% endif %}">
+            {% if result %}{% if result.will_rain %}Rainfall Expected{% else %}No Rain Expected{% endif %}{% endif %}
+          </h3>
+
+          <p id="verdict-subtitle" class="text-xs font-semibold max-w-xs mx-auto leading-relaxed {% if result %}{% if result.will_rain %}text-blue-700 dark:text-blue-300{% else %}text-amber-800 dark:text-amber-300{% endif %}{% endif %}">
+            {% if result %}
+              {% if result.will_rain %}
+                High confidence prediction ({{ result.rain_probability }}% likelihood of rain)
+              {% else %}
+                Clear weather likely ({{ result.no_rain_probability }}% chance of dry weather)
+              {% endif %}
             {% endif %}
-          {% endif %}
-        </p>
+          </p>
+        </div>
       </div>
 
       <!-- Probability Meter Bar -->

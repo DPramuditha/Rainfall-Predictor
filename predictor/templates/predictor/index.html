@@ -8,53 +8,36 @@
 
   <!-- Header Banner (Full Width Top) -->
   <div id="hero-banner" class="white-card rounded-2xl p-6 md:p-8 mb-8 border border-slate-200 dark:border-slate-800 shadow-sm relative overflow-hidden transition-all duration-700">
-    <!-- Background Watermark Animated Weather Icons -->
-    <div class="absolute right-0 top-0 translate-x-5 -translate-y-5 pointer-events-none opacity-10 dark:opacity-20">
-      <div class="w-72 h-72 relative flex items-center justify-center">
-        <!-- SVG 1: cloud-sun-rain -->
-        <svg class="hero-bg-icon-slide absolute inset-0 w-72 h-72 text-sky-600 dark:text-sky-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M12 2v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="M20 12h2"/><path d="m19.07 4.93-1.41 1.41"/><path d="M15.947 12.65a4 4 0 0 0-5.925-4.128"/><path d="M3 20a5 5 0 1 1 8.9-4H13a3 3 0 0 1 2 5.24"/><path d="M11 20v2"/><path d="M7 19v2"/>
-        </svg>
-        <!-- SVG 2: cloud-sun -->
-        <svg class="hero-bg-icon-slide absolute inset-0 w-72 h-72 text-amber-500 dark:text-amber-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M12 2v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="M20 12h2"/><path d="m19.07 4.93-1.41 1.41"/><path d="M15.947 12.65a4 4 0 0 0-5.925-4.128"/><path d="M13 22H7a5 5 0 1 1 4.9-6H13a3 3 0 0 1 0 6Z"/>
-        </svg>
-        <!-- SVG 3: cloud-rain-wind -->
-        <svg class="hero-bg-icon-slide absolute inset-0 w-72 h-72 text-blue-600 dark:text-blue-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242"/><path d="m9.2 22 3-7"/><path d="m9 13-3 7"/><path d="m17 13-3 7"/>
-        </svg>
-        <!-- SVG 4: cloud-moon-rain -->
-        <svg class="hero-bg-icon-slide absolute inset-0 w-72 h-72 text-indigo-500 dark:text-indigo-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M11 20v2"/><path d="M18.376 14.512a6 6 0 0 0 3.461-4.127c.148-.625-.659-.97-1.248-.714a4 4 0 0 1-5.259-5.26c.255-.589-.09-1.395-.716-1.248a6 6 0 0 0-4.594 5.36"/><path d="M3 20a5 5 0 1 1 8.9-4H13a3 3 0 0 1 2 5.24"/><path d="M7 19v2"/>
-        </svg>
-      </div>
-    </div>
-    
-    <div class="max-w-2xl text-center mx-auto">
-      <!-- Animated Weather Icon Badge -->
-      <div class="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-tr from-sky-50 to-blue-100 dark:from-slate-800 dark:to-slate-900 border border-sky-200/80 dark:border-slate-700 shadow-xs flex items-center justify-center p-3 relative overflow-hidden">
-        <div id="hero-icon-slider" class="w-10 h-10 relative flex items-center justify-center">
-          <!-- SVG 1: cloud-sun-rain -->
-          <svg class="hero-icon-slide absolute inset-0 w-10 h-10 text-sky-600 dark:text-sky-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M12 2v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="M20 12h2"/><path d="m19.07 4.93-1.41 1.41"/><path d="M15.947 12.65a4 4 0 0 0-5.925-4.128"/><path d="M3 20a5 5 0 1 1 8.9-4H13a3 3 0 0 1 2 5.24"/><path d="M11 20v2"/><path d="M7 19v2"/>
-          </svg>
-          <!-- SVG 2: cloud-sun -->
-          <svg class="hero-icon-slide absolute inset-0 w-10 h-10 text-amber-500 dark:text-amber-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M12 2v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="M20 12h2"/><path d="m19.07 4.93-1.41 1.41"/><path d="M15.947 12.65a4 4 0 0 0-5.925-4.128"/><path d="M13 22H7a5 5 0 1 1 4.9-6H13a3 3 0 0 1 0 6Z"/>
-          </svg>
-          <!-- SVG 3: cloud-rain-wind -->
-          <svg class="hero-icon-slide absolute inset-0 w-10 h-10 text-blue-600 dark:text-blue-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242"/><path d="m9.2 22 3-7"/><path d="m9 13-3 7"/><path d="m17 13-3 7"/>
-          </svg>
-          <!-- SVG 4: cloud-moon-rain -->
-          <svg class="hero-icon-slide absolute inset-0 w-10 h-10 text-indigo-500 dark:text-indigo-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M11 20v2"/><path d="M18.376 14.512a6 6 0 0 0 3.461-4.127c.148-.625-.659-.97-1.248-.714a4 4 0 0 1-5.259-5.26c.255-.589-.09-1.395-.716-1.248a6 6 0 0 0-4.594 5.36"/><path d="M3 20a5 5 0 1 1 8.9-4H13a3 3 0 0 1 2 5.24"/><path d="M7 19v2"/>
-          </svg>
+    <!-- Layered 3D Text-Behind-Image Hero Design -->
+    <div class="max-w-2xl text-center mx-auto relative">
+
+      <!-- Text-Behind-Image Container -->
+      <div class="relative flex flex-col items-center justify-center mb-4">
+        
+        <!-- Background Layer: Watermark Text Behind Image -->
+        <div id="hero-bg-text" class="absolute inset-0 flex items-center justify-center font-outfit font-black text-6xl sm:text-7xl md:text-8xl uppercase tracking-tighter opacity-[0.20] dark:opacity-[0.12] pointer-events-none select-none text-sky-800 dark:text-sky-300 leading-none" style="z-index: 1;">
+          Rainfall<br>Prediction
+        </div>
+
+        <!-- Center 3D Floating WebP Weather Image Carousel -->
+        <div class="relative flex justify-center" style="z-index: 2;">
+          <div id="hero-storm-img-wrapper" class="relative w-40 h-40 md:w-48 md:h-48 flex items-center justify-center">
+            <!-- Image 1: Cloud With Lightning And Rain -->
+            <img class="hero-weather-slide absolute inset-0 w-full h-full object-contain filter drop-shadow-2xl" 
+                 src="{% static 'images/Cloud With Lightning And Rain.webp' %}" 
+                 alt="Cloud With Lightning And Rain" />
+            <!-- Image 2: Sun Behind Cloud -->
+            <img class="hero-weather-slide absolute inset-0 w-full h-full object-contain filter drop-shadow-2xl" 
+                 src="{% static 'images/Sun Behind Cloud.webp' %}" 
+                 alt="Sun Behind Cloud" />
+            <!-- Image 3: Sun Behind Rain Cloud -->
+            <img class="hero-weather-slide absolute inset-0 w-full h-full object-contain filter drop-shadow-2xl" 
+                 src="{% static 'images/Sun Behind Rain Cloud.webp' %}" 
+                 alt="Sun Behind Rain Cloud" />
+          </div>
         </div>
       </div>
-      <span class="inline-block text-xs font-bold uppercase tracking-wider text-sky-600 dark:text-sky-400 bg-sky-50 dark:bg-sky-950/80 border border-sky-200 dark:border-sky-800 px-3 py-1 rounded-full mb-3">
-        Weather Forecast ML Model
-      </span>
+
       <h1 id="rolling-title" class="font-outfit text-3xl md:text-4xl font-extrabold text-slate-900 dark:text-white mb-3 tracking-tight flex flex-wrap justify-center items-center gap-x-2.5 overflow-hidden py-1 cursor-pointer select-none" aria-label="Rainfall Prediction Tool">
         <!-- Word 1: Rainfall -->
         <span class="inline-flex overflow-hidden py-0.5">
