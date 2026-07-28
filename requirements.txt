@@ -6,3 +6,7 @@ pandas
 numpy
 tensorflow
 keras
+fastapi
+uvicorn[standard]
+pydantic
+httpx

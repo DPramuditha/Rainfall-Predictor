@@ -1,12 +1,45 @@
 import json
+import logging
+import urllib.request
+import urllib.error
 from django.shortcuts import render
 from django.http import JsonResponse
 from .ml_model import ModelLoader
 
+logger = logging.getLogger(__name__)
+
+FASTAPI_URL = "http://127.0.0.1:8001/api/v1/predict"
+
+def _call_fastapi_predict(parsed_data: dict, selected_model: str) -> tuple[dict | None, str | None]:
+    """
+    Proxy prediction request to the FastAPI ML microservice.
+    Returns (result_dict, error_string).
+    """
+    payload = dict(parsed_data)
+    payload["model_choice"] = selected_model
+    data_bytes = json.dumps(payload).encode("utf-8")
+
+    req = urllib.request.Request(
+        FASTAPI_URL,
+        data=data_bytes,
+        headers={"Content-Type": "application/json"},
+        method="POST"
+    )
+
+    try:
+        with urllib.request.urlopen(req, timeout=3) as resp:
+            if resp.status == 200:
+                body = json.loads(resp.read().decode("utf-8"))
+                return body, None
+    except Exception as e:
+        logger.warning(f"FastAPI microservice call failed ({e}). Falling back to local ModelLoader.")
+
+    return None, "FastAPI microservice unreachable"
+
 def index(request):
     """
     Renders the Rainfall Predictor home page with the prediction form.
-    Handles POST requests for AJAX/form predictions with model selection support.
+    Handles POST requests for AJAX/form predictions with FastAPI microservice integration & local fallback.
     """
     result = None
     errors = None
@@ -52,7 +85,14 @@ def index(request):
                 'windspeed': float(data.get('windspeed', 12.5)),
             }
             form_data = parsed_data
-            result = ModelLoader.predict(parsed_data, model_name=selected_model)
+
+            # Try calling FastAPI ML microservice first
+            fastapi_result, _ = _call_fastapi_predict(parsed_data, selected_model)
+            if fastapi_result:
+                result = fastapi_result
+            else:
+                # Fallback to local ModelLoader execution
+                result = ModelLoader.predict(parsed_data, model_name=selected_model)
 
             if request.headers.get('x-requested-with') == 'XMLHttpRequest' or request.content_type == 'application/json':
                 return JsonResponse({'success': True, 'result': result})
