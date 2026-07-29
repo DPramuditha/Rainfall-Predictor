@@ -235,3 +235,17 @@ html.dark .badge-norain {
 @media (prefers-reduced-motion: reduce) {
   .t-dropdown { transition: none !important; }
 }
+/* Notification Center custom scrollbar */
+#notif-center-list::-webkit-scrollbar {
+  width: 4px;
+}
+#notif-center-list::-webkit-scrollbar-track {
+  background: transparent;
+}
+#notif-center-list::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.3);
+  border-radius: 4px;
+}
+#notif-center-list::-webkit-scrollbar-thumb:hover {
+  background: rgba(148, 163, 184, 0.5);
+}

@@ -157,17 +157,35 @@
             </span>
           </button>
 
-          <!-- Notification Dropdown Panel -->
-          <div id="notif-dropdown" class="hidden absolute right-0 mt-2 w-72 bg-white dark:bg-slate-900 rounded-2xl shadow-xl border border-slate-200/90 dark:border-slate-800 p-4 z-50 transform origin-top-right">
-            <div class="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-slate-800 mb-3">
-              <span class="font-outfit font-bold text-sm text-slate-900 dark:text-slate-100">Notifications</span>
-              <span class="text-[11px] font-medium bg-sky-50 dark:bg-sky-950/80 text-sky-600 dark:text-sky-400 px-2 py-0.5 rounded-full border border-sky-200 dark:border-sky-800">1 New</span>
-            </div>
-            <div class="flex items-start space-x-3 text-xs text-slate-600 dark:text-slate-300 py-1">
-              <span class="text-base">🚀</span>
-              <div>
-                <span class="font-semibold text-slate-800 dark:text-slate-100 block">Model Ready</span>
-                XGBoost model version 1.0 loaded successfully.
+          <!-- Notification Dropdown Panel (near bell icon) -->
+          <div id="notif-center-panel" class="hidden absolute right-0 mt-2 w-80 sm:w-96 rounded-2xl shadow-2xl border overflow-hidden z-50 origin-top-right bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border-slate-200/90 dark:border-slate-700/60">
+            <div id="notif-center-inner">
+              <!-- Header -->
+              <div class="flex items-center justify-between px-4 py-3 border-b border-slate-100 dark:border-slate-700/50">
+                <div class="flex items-center space-x-2">
+                  <svg class="w-4 h-4 text-sky-500 dark:text-sky-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                  </svg>
+                  <span class="font-outfit font-bold text-sm text-slate-900 dark:text-white tracking-wide">Notifications</span>
+                  <span id="notif-center-count" class="text-[10px] font-bold px-2 py-0.5 rounded-full border bg-sky-50 dark:bg-sky-500/20 text-sky-600 dark:text-sky-300 border-sky-200 dark:border-sky-500/30">0</span>
+                </div>
+                <div class="flex items-center space-x-2">
+                  <button type="button" onclick="clearAllNotifications()" class="text-[11px] font-semibold text-slate-400 dark:text-slate-400 hover:text-slate-700 dark:hover:text-white transition-colors cursor-pointer px-2 py-0.5 rounded-md hover:bg-slate-100 dark:hover:bg-white/10">Clear All</button>
+                  <button type="button" onclick="toggleNotifCenter()" aria-label="Close notifications" class="text-slate-400 hover:text-slate-700 dark:hover:text-white transition-colors cursor-pointer p-1 rounded-full hover:bg-slate-100 dark:hover:bg-white/10">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+              <!-- Scrollable Notification List -->
+              <div id="notif-center-list" class="overflow-y-auto max-h-[350px] px-3 py-2 space-y-1">
+                <!-- Empty State -->
+                <div id="notif-empty-state" class="py-8 text-center">
+                  <div class="text-3xl mb-2">🔔</div>
+                  <p class="text-xs text-slate-400 font-medium">No notifications yet</p>
+                  <p class="text-[11px] text-slate-500 mt-0.5">Actions and events will appear here</p>
+                </div>
               </div>
             </div>
           </div>
@@ -290,6 +308,7 @@
   </div>
     </div>
   </div>
+
 
   <!-- Fixed GSAP Pill Toast Notification Container (Bottom Right) -->
   <div id="toast-notification-container" class="fixed bottom-6 right-6 z-50 pointer-events-none flex flex-col space-y-3 items-end">
