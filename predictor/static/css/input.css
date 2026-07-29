@@ -46,30 +46,44 @@ html.dark .white-card {
 }
 
 .custom-input {
-  background: #f8fafc;
+  background-color: #f8fafc;
   border: 1px solid #cbd5e1;
   color: #0f172a;
   font-family: 'Nunito', sans-serif;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
 }
 
-html.dark .custom-input {
-  background: #1e293b;
-  border-color: #334155;
-  color: #f8fafc;
+html.dark .custom-input,
+.dark .custom-input {
+  background-color: #1e293b !important;
+  border-color: #334155 !important;
+  color: #f8fafc !important;
 }
 
 .custom-input:focus {
   outline: none;
-  background: #ffffff;
+  background-color: #ffffff;
   border-color: #0284c7;
   box-shadow: 0 0 0 4px rgba(2, 132, 199, 0.15);
 }
 
-html.dark .custom-input:focus {
-  background: #0f172a;
-  border-color: #38bdf8;
-  box-shadow: 0 0 0 4px rgba(56, 189, 248, 0.25);
+html.dark .custom-input:focus,
+.dark .custom-input:focus {
+  background-color: #0f172a !important;
+  border-color: #38bdf8 !important;
+  box-shadow: 0 0 0 4px rgba(56, 189, 248, 0.25) !important;
+}
+
+/* Chrome/Edge/Safari Autofill dark mode override */
+html.dark input.custom-input:-webkit-autofill,
+.dark input.custom-input:-webkit-autofill,
+html.dark input.custom-input:-webkit-autofill:hover,
+.dark input.custom-input:-webkit-autofill:hover,
+html.dark input.custom-input:-webkit-autofill:focus,
+.dark input.custom-input:-webkit-autofill:focus {
+  -webkit-text-fill-color: #f8fafc !important;
+  -webkit-box-shadow: 0 0 0px 1000px #1e293b inset !important;
+  transition: background-color 5000s ease-in-out 0s;
 }
 
 .btn-primary {

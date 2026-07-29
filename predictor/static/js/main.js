@@ -66,12 +66,19 @@ function loadPreset(type) {
   const data = presets[type];
   if (!data) return;
 
+  const isDark = document.documentElement.classList.contains('dark');
+  const flashColor = isDark ? '#0284c7' : '#38bdf8';
+
   for (const [key, val] of Object.entries(data)) {
     const input = document.getElementById(`id_${key}`);
     if (input) {
       input.value = val;
       if (typeof gsap !== 'undefined') {
-        gsap.fromTo(input, { backgroundColor: '#e0f2fe' }, { backgroundColor: '#f8fafc', duration: 0.8 });
+        gsap.killTweensOf(input);
+        gsap.fromTo(input,
+          { backgroundColor: flashColor },
+          { duration: 0.8, clearProps: "backgroundColor" }
+        );
       }
     }
   }
@@ -134,6 +141,15 @@ function setTheme(theme, triggerToast = false) {
 
   // Update Button Icon & Text
   updateThemeUI(theme);
+
+  // Clear any residual inline styles on custom inputs so CSS dark mode rules apply cleanly
+  document.querySelectorAll('.custom-input').forEach(input => {
+    if (typeof gsap !== 'undefined') {
+      gsap.killTweensOf(input);
+    }
+    input.style.removeProperty('background-color');
+    input.style.removeProperty('color');
+  });
 
   // Re-render chart to match new light/dark theme grid & text colors
   if (typeof meteorologyChart !== 'undefined' && meteorologyChart) {
@@ -362,7 +378,7 @@ function displayResult(result) {
         pageBody.style.backgroundColor = rainyBg;
       }
     }
-    if (heroBanner) heroBanner.style.borderColor = isDark ? '#1e3a8a' : '#bfdbfe';
+    if (heroBanner) heroBanner.style.borderColor = '';
 
   } else {
     // --- Sunny / Dry Atmosphere Theme ---
@@ -399,7 +415,7 @@ function displayResult(result) {
         pageBody.style.backgroundColor = dryBg;
       }
     }
-    if (heroBanner) heroBanner.style.borderColor = isDark ? '#78350f' : '#fde68a';
+    if (heroBanner) heroBanner.style.borderColor = '';
   }
 
   // GSAP 3D Floating Levitation & Scale Pop Animation for Weather Image
