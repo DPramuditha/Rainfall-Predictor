@@ -527,41 +527,106 @@ function displayResult(result) {
 
 // --- Shadcn Style Interactive Area Chart Logic ---
 let meteorologyChart = null;
+let dbPredictionsList = [];
 
 const chartDataPresets = {
+  'db': {
+    labels: ['Loading...'],
+    rainProb: [0],
+    humidity: [0],
+    cloud: [0],
+    total: '0 Records',
+    avgRain: '0%',
+    avgHumidity: '0%',
+    latest: 'None'
+  },
   '24h': {
     labels: ['00:00', '03:00', '06:00', '09:00', '12:00', '15:00', '18:00', '21:00'],
     rainProb: [15, 20, 35, 65, 82, 88, 75, 40],
     humidity: [68, 72, 78, 85, 80, 84, 79, 70],
     cloud: [25, 30, 45, 70, 85, 90, 80, 50],
-    peak: '15:00 (88%)',
+    total: '24H Sample',
+    avgRain: '62.5%',
     avgHumidity: '77.0%',
-    avgCloud: '59.4%',
-    confidence: 'High (96.2%)'
+    latest: '15:00 (88% Rain)'
   },
   '7d': {
     labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
     rainProb: [25, 85, 90, 40, 15, 60, 75],
     humidity: [55, 88, 92, 65, 48, 74, 80],
     cloud: [35, 90, 95, 50, 20, 68, 78],
-    peak: 'Wed (90%)',
+    total: '7D Sample',
+    avgRain: '55.7%',
     avgHumidity: '71.7%',
-    avgCloud: '62.3%',
-    confidence: 'Optimal (97.8%)'
+    latest: 'Wed (90% Rain)'
   },
   '30d': {
     labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4'],
     rainProb: [42, 78, 65, 28],
     humidity: [62, 84, 76, 52],
     cloud: [48, 82, 70, 38],
-    peak: 'Week 2 (78%)',
+    total: '30D Sample',
+    avgRain: '53.2%',
     avgHumidity: '68.5%',
-    avgCloud: '59.5%',
-    confidence: 'Verified (95.4%)'
+    latest: 'Week 2 (78% Rain)'
   }
 };
 
-let currentHorizon = '24h';
+let currentHorizon = 'db';
+
+function updateDbChartPreset(predictions) {
+  if (!predictions || predictions.length === 0) {
+    chartDataPresets['db'] = {
+      labels: ['No DB Records Yet'],
+      rainProb: [0],
+      humidity: [0],
+      cloud: [0],
+      total: '0 Records',
+      avgRain: '0%',
+      avgHumidity: '0%',
+      latest: 'None'
+    };
+  } else {
+    const labels = predictions.map(p => p.label || `#${p.id}`);
+    const rainProb = predictions.map(p => Math.round(p.rain_probability));
+    const humidity = predictions.map(p => Math.round(p.humidity));
+    const cloud = predictions.map(p => Math.round(p.cloud));
+
+    const totalRecords = predictions.length;
+    const avgRainVal = (rainProb.reduce((a, b) => a + b, 0) / totalRecords).toFixed(1);
+    const avgHumVal = (humidity.reduce((a, b) => a + b, 0) / totalRecords).toFixed(1);
+    const latestRec = predictions[predictions.length - 1];
+
+    chartDataPresets['db'] = {
+      labels: labels,
+      rainProb: rainProb,
+      humidity: humidity,
+      cloud: cloud,
+      total: `${totalRecords} Record${totalRecords > 1 ? 's' : ''}`,
+      avgRain: `${avgRainVal}%`,
+      avgHumidity: `${avgHumVal}%`,
+      latest: `#${latestRec.id}: ${latestRec.rain_probability}% (${latestRec.will_rain ? 'Rain' : 'Dry'})`
+    };
+  }
+
+  if (currentHorizon === 'db') {
+    switchChartHorizon('db');
+  }
+}
+
+async function loadDatabasePredictions() {
+  try {
+    const apiEndpoint = window.location.origin + '/api/predictions/';
+    const response = await fetch(apiEndpoint);
+    const json = await response.json();
+    if (json.success && Array.isArray(json.predictions)) {
+      dbPredictionsList = json.predictions;
+      updateDbChartPreset(dbPredictionsList);
+    }
+  } catch (err) {
+    console.warn("Could not load stored database predictions:", err);
+  }
+}
 
 function initAreaChart() {
   const canvas = document.getElementById('meteorologicalAreaChart');
@@ -585,7 +650,7 @@ function initAreaChart() {
   gradCloud.addColorStop(0, isDark ? 'rgba(168, 85, 247, 0.25)' : 'rgba(147, 51, 234, 0.18)');
   gradCloud.addColorStop(1, isDark ? 'rgba(168, 85, 247, 0.01)' : 'rgba(147, 51, 234, 0.01)');
 
-  const preset = chartDataPresets[currentHorizon];
+  const preset = chartDataPresets[currentHorizon] || chartDataPresets['db'];
 
   meteorologyChart = new Chart(ctx, {
     type: 'line',
@@ -702,6 +767,9 @@ function initAreaChart() {
       }
     }
   });
+
+  // Automatically fetch DB predictions on initial load
+  loadDatabasePredictions();
 }
 
 function switchChartHorizon(horizon) {
@@ -709,7 +777,7 @@ function switchChartHorizon(horizon) {
   currentHorizon = horizon;
 
   // Update button active styles
-  ['24h', '7d', '30d'].forEach(h => {
+  ['db', '24h', '7d', '30d'].forEach(h => {
     const btn = document.getElementById(`chart-btn-${h}`);
     if (btn) {
       if (h === horizon) {
@@ -731,39 +799,40 @@ function switchChartHorizon(horizon) {
     meteorologyChart.update();
   }
 
+  const tEl = document.getElementById('chart-stat-total');
   const pEl = document.getElementById('chart-stat-peak');
   const hEl = document.getElementById('chart-stat-humidity');
-  const cEl = document.getElementById('chart-stat-cloud');
   const confEl = document.getElementById('chart-stat-confidence');
 
-  if (pEl) pEl.innerText = preset.peak;
-  if (hEl) hEl.innerText = preset.avgHumidity;
-  if (cEl) cEl.innerText = preset.avgCloud;
-  if (confEl) confEl.innerText = preset.confidence;
+  if (tEl) tEl.innerText = preset.total || preset.peak || 'N/A';
+  if (pEl) pEl.innerText = preset.avgRain || preset.peak || 'N/A';
+  if (hEl) hEl.innerText = preset.avgHumidity || 'N/A';
+  if (confEl) confEl.innerText = preset.latest || preset.confidence || 'N/A';
 }
 
 /**
  * Updates the chart with real-time prediction payload from form submission
  */
 function updateChartFromPrediction(result) {
-  if (!meteorologyChart || !result) return;
+  if (!result) return;
 
   const rainProb = Math.round(result.rain_probability);
-  const humidity = parseFloat(document.getElementById('id_humidity')?.value) || 75;
-  const cloud = parseFloat(document.getElementById('id_cloud')?.value) || 60;
+  const humidity = parseFloat(document.getElementById('id_humidity')?.value) || 80;
+  const cloud = parseFloat(document.getElementById('id_cloud')?.value) || 65;
 
-  // Inject current prediction into chart dataset at mid point
-  const dataLen = meteorologyChart.data.datasets[0].data.length;
-  if (dataLen > 0) {
-    const midIdx = Math.floor(dataLen / 2);
-    meteorologyChart.data.datasets[0].data[midIdx] = rainProb;
-    meteorologyChart.data.datasets[1].data[midIdx] = Math.min(100, Math.round(humidity));
-    meteorologyChart.data.datasets[2].data[midIdx] = Math.min(100, Math.round(cloud));
-    meteorologyChart.update();
-  }
+  // Add new prediction into DB list
+  const newRecord = {
+    id: result.id || (dbPredictionsList.length + 1),
+    label: result.label || `#${result.id || (dbPredictionsList.length + 1)}`,
+    rain_probability: rainProb,
+    humidity: Math.min(100, Math.round(humidity)),
+    cloud: Math.min(100, Math.round(cloud)),
+    will_rain: result.will_rain
+  };
 
-  const pEl = document.getElementById('chart-stat-peak');
-  if (pEl) pEl.innerText = `Live: ${rainProb}% Rain`;
+  dbPredictionsList.push(newRecord);
+  updateDbChartPreset(dbPredictionsList);
+  switchChartHorizon('db');
 }
 
 /**

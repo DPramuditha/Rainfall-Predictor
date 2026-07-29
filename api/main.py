@@ -16,6 +16,7 @@ from pydantic import BaseModel, Field
 from typing import Optional, Dict, Any
 
 from predictor.ml_model import ModelLoader
+from predictor.models import RainfallPrediction
 
 # Initialize FastAPI App
 app = FastAPI(
@@ -92,6 +93,47 @@ async def root():
         "docs_url": "/docs",
         "supported_models": ["xgboost", "neural_network"]
     }
+
+@app.get("/api/predictions/", tags=["Predictions"])
+@app.get("//api/predictions/", tags=["Predictions"])
+@app.get("/api/v1/predictions", tags=["Predictions"])
+def get_predictions_history():
+    """
+    Returns all stored prediction records from PostgreSQL database.
+    Running as sync def allows Django ORM to execute safely in FastAPI threadpool.
+    """
+    try:
+        records = list(RainfallPrediction.objects.all().order_by('created_at')[:100])
+        data = []
+        for item in records:
+            data.append({
+                'id': item.id,
+                'day': item.day,
+                'pressure': item.pressure,
+                'temparature': item.temparature,
+                'maxtemp': item.maxtemp,
+                'mintemp': item.mintemp,
+                'dewpoint': item.dewpoint,
+                'humidity': item.humidity,
+                'cloud': item.cloud,
+                'sunshine': item.sunshine,
+                'winddirection': item.winddirection,
+                'windspeed': item.windspeed,
+                'prediction': item.prediction,
+                'will_rain': item.will_rain,
+                'rain_probability': item.rain_probability,
+                'no_rain_probability': item.no_rain_probability,
+                'model_used': item.model_used,
+                'model_display_name': item.model_display_name,
+                'created_at': item.created_at.strftime('%Y-%m-%d %H:%M:%S'),
+                'label': f"#{item.id} ({item.created_at.strftime('%H:%M')})"
+            })
+        return {"success": True, "count": len(data), "predictions": data}
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Database Error: {str(e)}"
+        )
 
 @app.post("/api/v1/predict", response_model=RainfallPredictionResponse, tags=["Predictions"])
 async def predict_rainfall(payload: RainfallPredictionRequest):

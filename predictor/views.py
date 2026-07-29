@@ -5,10 +5,13 @@ import urllib.error
 from django.shortcuts import render
 from django.http import JsonResponse
 from .ml_model import ModelLoader
+from .models import RainfallPrediction
+
+import os
 
 logger = logging.getLogger(__name__)
 
-FASTAPI_URL = "http://127.0.0.1:8001/api/v1/predict"
+FASTAPI_URL = os.environ.get("FASTAPI_URL", "http://127.0.0.1:8001/api/v1/predict")
 
 def _call_fastapi_predict(parsed_data: dict, selected_model: str) -> tuple[dict | None, str | None]:
     """
@@ -36,10 +39,47 @@ def _call_fastapi_predict(parsed_data: dict, selected_model: str) -> tuple[dict 
 
     return None, "FastAPI microservice unreachable"
 
+def get_predictions_api(request):
+    """
+    Returns all saved predictions from the database in JSON format.
+    Used by Shadcn Interactive Area Chart.
+    """
+    predictions = RainfallPrediction.objects.all().order_by('created_at')[:100]
+    data = []
+    for item in predictions:
+        data.append({
+            'id': item.id,
+            'day': item.day,
+            'pressure': item.pressure,
+            'temparature': item.temparature,
+            'maxtemp': item.maxtemp,
+            'mintemp': item.mintemp,
+            'dewpoint': item.dewpoint,
+            'humidity': item.humidity,
+            'cloud': item.cloud,
+            'sunshine': item.sunshine,
+            'winddirection': item.winddirection,
+            'windspeed': item.windspeed,
+            'prediction': item.prediction,
+            'will_rain': item.will_rain,
+            'rain_probability': item.rain_probability,
+            'no_rain_probability': item.no_rain_probability,
+            'model_used': item.model_used,
+            'model_display_name': item.model_display_name,
+            'created_at': item.created_at.strftime('%Y-%m-%d %H:%M:%S'),
+            'label': f"#{item.id} ({item.created_at.strftime('%H:%M')})"
+        })
+    return JsonResponse({
+        'success': True,
+        'count': len(data),
+        'predictions': data
+    })
+
 def index(request):
     """
     Renders the Rainfall Predictor home page with the prediction form.
-    Handles POST requests for AJAX/form predictions with FastAPI microservice integration & local fallback.
+    Handles POST requests for AJAX/form predictions, saves results into the database,
+    and returns response payload with DB integration.
     """
     result = None
     errors = None
@@ -93,6 +133,33 @@ def index(request):
             else:
                 # Fallback to local ModelLoader execution
                 result = ModelLoader.predict(parsed_data, model_name=selected_model)
+
+            # SAVE PREDICTION INTO DATABASE
+            try:
+                record = RainfallPrediction.objects.create(
+                    day=parsed_data['day'],
+                    pressure=parsed_data['pressure'],
+                    maxtemp=parsed_data['maxtemp'],
+                    temparature=parsed_data['temparature'],
+                    mintemp=parsed_data['mintemp'],
+                    dewpoint=parsed_data['dewpoint'],
+                    humidity=parsed_data['humidity'],
+                    cloud=parsed_data['cloud'],
+                    sunshine=parsed_data['sunshine'],
+                    winddirection=parsed_data['winddirection'],
+                    windspeed=parsed_data['windspeed'],
+                    prediction=int(result.get('prediction', 0)),
+                    will_rain=bool(result.get('will_rain', False)),
+                    rain_probability=float(result.get('rain_probability', 0.0)),
+                    no_rain_probability=float(result.get('no_rain_probability', 0.0)),
+                    model_used=str(result.get('model_used', selected_model)),
+                    model_display_name=str(result.get('model_display_name', 'XGBoost ML Model'))
+                )
+                result['id'] = record.id
+                result['created_at'] = record.created_at.strftime('%Y-%m-%d %H:%M:%S')
+                result['label'] = f"#{record.id} ({record.created_at.strftime('%H:%M')})"
+            except Exception as db_err:
+                logger.error(f"Error saving prediction to database: {db_err}")
 
             if request.headers.get('x-requested-with') == 'XMLHttpRequest' or request.content_type == 'application/json':
                 return JsonResponse({'success': True, 'result': result})
