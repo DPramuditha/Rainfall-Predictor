@@ -58,6 +58,69 @@ const presets = {
   }
 };
 
+// Global Lottie Animation Instance & Loader Overlay Control
+let lottieAnimationInstance = null;
+
+/**
+ * Initializes the Lottie loading animation with predictor/static/animate_image/loading.json
+ */
+function initLottieLoader() {
+  const container = document.getElementById('lottie-player-container');
+  const jsonPath = window.LOTTIE_LOADING_JSON || '/static/animate_image/loading.json';
+  
+  if (container && typeof lottie !== 'undefined') {
+    container.innerHTML = '';
+    lottieAnimationInstance = lottie.loadAnimation({
+      container: container,
+      renderer: 'svg',
+      loop: true,
+      autoplay: true,
+      path: jsonPath
+    });
+  }
+}
+
+/**
+ * Shows the centered Lottie Loading Overlay (Icon Only)
+ */
+function showLottieLoader() {
+  const overlay = document.getElementById('lottie-loader-overlay');
+  const container = document.getElementById('lottie-player-container');
+
+  if (overlay) {
+    overlay.classList.remove('pointer-events-none', 'opacity-0');
+    overlay.classList.add('opacity-100');
+    if (container) {
+      container.classList.remove('scale-90');
+      container.classList.add('scale-100');
+    }
+  }
+
+  if (lottieAnimationInstance) {
+    lottieAnimationInstance.play();
+  }
+}
+
+/**
+ * Hides the centered Lottie Loading Overlay
+ */
+function hideLottieLoader() {
+  const overlay = document.getElementById('lottie-loader-overlay');
+  const container = document.getElementById('lottie-player-container');
+
+  if (overlay) {
+    overlay.classList.remove('opacity-100');
+    overlay.classList.add('opacity-0', 'pointer-events-none');
+    if (container) {
+      container.classList.remove('scale-100');
+      container.classList.add('scale-90');
+    }
+  }
+}
+
+window.showLottieLoader = showLottieLoader;
+window.hideLottieLoader = hideLottieLoader;
+
 /**
  * Loads preset values into the input form fields
  * @param {string} type - 'rainy' or 'dry'
@@ -65,6 +128,8 @@ const presets = {
 function loadPreset(type) {
   const data = presets[type];
   if (!data) return;
+
+  showLottieLoader();
 
   const isDark = document.documentElement.classList.contains('dark');
   const flashColor = isDark ? '#0284c7' : '#38bdf8';
@@ -82,6 +147,10 @@ function loadPreset(type) {
       }
     }
   }
+
+  setTimeout(() => {
+    hideLottieLoader();
+  }, 450);
 }
 
 /**
@@ -334,9 +403,10 @@ function displayResult(result) {
   const willRain = result.will_rain;
   const isDark = document.documentElement.classList.contains('dark');
 
-  // Cache prediction result and morph ambient glow colors (bg-glow-1, bg-glow-2, bg-glow-3)
+  // Cache prediction result and morph ambient glow colors & background video
   lastPredictionResult = result;
   updateAmbientGlowColors(willRain, isDark);
+  updateRainBgVideo(willRain);
 
   const heroImg = document.getElementById('verdict-hero-img');
   const bgText = document.getElementById('verdict-bg-text');
@@ -788,9 +858,16 @@ function initAreaChart() {
   loadDatabasePredictions();
 }
 
-function switchChartHorizon(horizon) {
+function switchChartHorizon(horizon, skipLoader = false) {
   if (!chartDataPresets[horizon]) return;
   currentHorizon = horizon;
+
+  if (!skipLoader) {
+    showLottieLoader();
+    setTimeout(() => {
+      hideLottieLoader();
+    }, 400);
+  }
 
   // Update button active styles
   ['db', '24h', '7d', '30d'].forEach(h => {
@@ -931,6 +1008,139 @@ function initAmbientBackground() {
     });
   }
 }
+
+/**
+ * Real-Time Animated Background powered by predictor/static/animate_image/background.json
+ */
+let lottieBgInstance = null;
+
+function initLottieBackground() {
+  const bgContainer = document.getElementById('lottie-bg-container');
+  const bgCanvas = document.getElementById('lottie-bg-canvas');
+  const jsonPath = window.LOTTIE_BACKGROUND_JSON || '/static/animate_image/background.json';
+
+  // 1. Render with Lottie Web Player if applicable
+  if (bgContainer && typeof lottie !== 'undefined') {
+    try {
+      lottieBgInstance = lottie.loadAnimation({
+        container: bgContainer,
+        renderer: 'svg',
+        loop: true,
+        autoplay: true,
+        path: jsonPath
+      });
+    } catch (e) {
+      console.warn('Lottie player background renderer:', e);
+    }
+  }
+
+  // 2. Real-Time Canvas Mesh Blend Engine reading background.json color stops
+  if (bgCanvas) {
+    const ctx = bgCanvas.getContext('2d');
+    if (!ctx) return;
+
+    let width = bgCanvas.width = window.innerWidth;
+    let height = bgCanvas.height = window.innerHeight;
+
+    window.addEventListener('resize', () => {
+      width = bgCanvas.width = window.innerWidth;
+      height = bgCanvas.height = window.innerHeight;
+    });
+
+    // Default color stops extracted from background.json (#A0D8EF, #A2D7DD, #FEC346, #F3E6A8, #F2A24A)
+    let colors = ['#A0D8EF', '#A2D7DD', '#FEC346', '#F3E6A8', '#F2A24A'];
+
+    // Dynamically sync from background.json file
+    fetch(jsonPath)
+      .then(res => res.json())
+      .then(data => {
+        if (data && Array.isArray(data.stops)) {
+          const parsed = data.stops.map(s => s.hex).filter(Boolean);
+          if (parsed.length > 0) colors = parsed;
+        }
+      })
+      .catch(() => {});
+
+    // Create dynamic floating control points
+    const blobs = colors.map((color, idx) => ({
+      color: color,
+      x: Math.random() * width,
+      y: Math.random() * height,
+      vx: (Math.random() - 0.5) * 0.7,
+      vy: (Math.random() - 0.5) * 0.7,
+      radius: Math.min(width, height) * (0.35 + (idx % 3) * 0.1)
+    }));
+
+    let time = 0;
+    function renderRealtimeBackground() {
+      ctx.clearRect(0, 0, width, height);
+      time += 0.007;
+
+      blobs.forEach((blob, i) => {
+        blob.x += Math.sin(time + i) * 0.7 + blob.vx;
+        blob.y += Math.cos(time * 0.8 + i) * 0.7 + blob.vy;
+
+        if (blob.x < -blob.radius) blob.x = width + blob.radius;
+        if (blob.x > width + blob.radius) blob.x = -blob.radius;
+        if (blob.y < -blob.radius) blob.y = height + blob.radius;
+        if (blob.y > height + blob.radius) blob.y = -blob.radius;
+
+        const radGrad = ctx.createRadialGradient(
+          blob.x, blob.y, 0,
+          blob.x, blob.y, blob.radius
+        );
+        radGrad.addColorStop(0, blob.color);
+        radGrad.addColorStop(1, 'transparent');
+
+        ctx.fillStyle = radGrad;
+        ctx.beginPath();
+        ctx.arc(blob.x, blob.y, blob.radius, 0, Math.PI * 2);
+        ctx.fill();
+      });
+
+      requestAnimationFrame(renderRealtimeBackground);
+    }
+
+    renderRealtimeBackground();
+  }
+}
+
+/**
+ * Triggers background videos: Blue sky.mp4 when rainfall, Golden hour.mp4 when no rainfall
+ * @param {boolean} willRain
+ */
+function updateWeatherBgVideos(willRain) {
+  const rainVideo = document.getElementById('rain-bg-video');
+  const dryVideo = document.getElementById('dry-bg-video');
+
+  if (willRain) {
+    // Show & Play Rain Video (Blue sky.mp4), Hide Dry Video
+    if (dryVideo) {
+      dryVideo.classList.remove('opacity-45', 'dark:opacity-30');
+      dryVideo.classList.add('opacity-0', 'pointer-events-none');
+      dryVideo.pause();
+    }
+    if (rainVideo) {
+      rainVideo.classList.remove('opacity-0', 'pointer-events-none');
+      rainVideo.classList.add('opacity-45', 'dark:opacity-30');
+      rainVideo.play().catch(e => console.log('Rain video play interaction:', e));
+    }
+  } else {
+    // Show & Play Dry Video (Golden hour.mp4), Hide Rain Video
+    if (rainVideo) {
+      rainVideo.classList.remove('opacity-45', 'dark:opacity-30');
+      rainVideo.classList.add('opacity-0', 'pointer-events-none');
+      rainVideo.pause();
+    }
+    if (dryVideo) {
+      dryVideo.classList.remove('opacity-0', 'pointer-events-none');
+      dryVideo.classList.add('opacity-45', 'dark:opacity-30');
+      dryVideo.play().catch(e => console.log('Dry video play interaction:', e));
+    }
+  }
+}
+window.updateWeatherBgVideos = updateWeatherBgVideos;
+window.updateRainBgVideo = updateWeatherBgVideos;
 
 /**
  * GSAP 3D Rolling Text Animation for the main title "Rainfall Prediction Tool"
@@ -1156,7 +1366,12 @@ function initModelDropdown() {
       }
     }
 
-    // Trigger Pill Toast Notification (Bottom Right)
+    // Trigger Lottie Loader Overlay & Toast Notification
+    showLottieLoader();
+    setTimeout(() => {
+      hideLottieLoader();
+    }, 500);
+
     if (typeof window.showToastNotification === 'function') {
       if (modelKey === 'neural_network') {
         window.showToastNotification('Model Switched', 'Neural Network (Keras DL) model active', 'brain', 'nn');
@@ -1400,12 +1615,24 @@ document.addEventListener('DOMContentLoaded', () => {
   const initialTheme = localStorage.getItem('theme') || (document.documentElement.classList.contains('dark') ? 'dark' : 'light');
   updateThemeUI(initialTheme);
 
-  // Initialize GSAP ScrollSmoother, Ambient Background, Rolling Title, Model Dropdown & Area Chart
+  // Initialize GSAP ScrollSmoother, Ambient Background, Rolling Title, Model Dropdown, Area Chart, Lottie Loader & Lottie Background
   initScrollSmoother();
   initAmbientBackground();
+  initLottieBackground();
   initRollingTitleAnimation();
   initModelDropdown();
   initAreaChart();
+  initLottieLoader();
+
+  // Sync background video if initial page load has a prediction result
+  const verdictBanner = document.getElementById('verdict-banner');
+  if (verdictBanner) {
+    if (verdictBanner.classList.contains('badge-rain')) {
+      updateWeatherBgVideos(true);
+    } else if (verdictBanner.classList.contains('badge-norain')) {
+      updateWeatherBgVideos(false);
+    }
+  }
 
   // GSAP Initial Entrance Animations with clearProps to prevent residual style locks
   if (typeof gsap !== 'undefined') {
@@ -1647,10 +1874,11 @@ document.addEventListener('DOMContentLoaded', () => {
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
 
-      // UI Loading state
+      // UI Loading state & Centered Lottie Loader Modal
       btnText.innerText = 'Calculating...';
       btnSpinner.classList.remove('hidden');
       submitBtn.disabled = true;
+      showLottieLoader();
 
       const formData = new FormData(form);
 
@@ -1678,6 +1906,9 @@ document.addEventListener('DOMContentLoaded', () => {
         btnText.innerText = 'Predict Rainfall';
         btnSpinner.classList.add('hidden');
         submitBtn.disabled = false;
+        setTimeout(() => {
+          hideLottieLoader();
+        }, 400);
       }
     });
   }

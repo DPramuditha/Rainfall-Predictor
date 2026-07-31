@@ -51,11 +51,30 @@
   <script src="{% static 'js/vendor/ScrollTrigger.min.js' %}"></script>
   <script src="{% static 'js/vendor/ScrollSmoother.min.js' %}"></script>
 
+  <!-- Lottie Web Animation Library (Local Vendor File) -->
+  <script src="{% static 'js/vendor/lottie.min.js' %}"></script>
+
   {% block extra_head %}{% endblock %}
 </head>
 <body id="page-body" class="bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 min-h-screen font-sans antialiased selection:bg-sky-500 selection:text-white overflow-x-hidden transition-colors duration-700">
-  <!-- Fixed Dynamic Ambient Background Highlights (#7b7fec, #731ae8, #2f5cff) -->
+  <!-- Fixed Dynamic Real-Time Animated Background (Blue sky.mp4 & Golden hour.mp4) -->
   <div class="fixed inset-0 pointer-events-none overflow-hidden z-0" aria-hidden="true">
+    <video id="rain-bg-video" 
+           src="{% static 'animate_image/Blue sky.mp4' %}" 
+           muted 
+           loop 
+           playsinline 
+           preload="auto" 
+           class="absolute inset-0 w-full h-full object-cover pointer-events-none opacity-0 transition-opacity duration-1000 filter blur-xs dark:brightness-90 z-0"></video>
+    <video id="dry-bg-video" 
+           src="{% static 'animate_image/Golden hour.mp4' %}" 
+           muted 
+           loop 
+           playsinline 
+           preload="auto" 
+           class="absolute inset-0 w-full h-full object-cover pointer-events-none opacity-0 transition-opacity duration-1000 filter blur-xs dark:brightness-90 z-0"></video>
+    <div id="lottie-bg-container" class="absolute inset-0 w-full h-full pointer-events-none opacity-40 dark:opacity-25 transition-opacity duration-1000 z-0"></div>
+    <canvas id="lottie-bg-canvas" class="absolute inset-0 w-full h-full pointer-events-none opacity-50 dark:opacity-30 filter blur-[90px] transition-opacity duration-1000 z-0"></canvas>
     <div id="bg-glow-1" class="ambient-glow absolute -top-24 -left-24 w-[38rem] h-[38rem] rounded-full blur-[180px] opacity-60 dark:opacity-40" style="background: radial-gradient(circle, #7b7fec 0%, rgba(123, 127, 236, 0) 70%); filter: blur(180px);"></div>
     <div id="bg-glow-2" class="ambient-glow absolute top-1/3 -right-24 w-[40rem] h-[40rem] rounded-full blur-[200px] opacity-55 dark:opacity-35" style="background: radial-gradient(circle, #731ae8 0%, rgba(115, 26, 232, 0) 70%); filter: blur(200px);"></div>
     <div id="bg-glow-3" class="ambient-glow absolute -bottom-24 left-1/4 w-[42rem] h-[42rem] rounded-full blur-[220px] opacity-50 dark:opacity-30" style="background: radial-gradient(circle, #2f5cff 0%, rgba(47, 92, 255, 0) 70%); filter: blur(220px);"></div>
@@ -333,11 +352,19 @@
     </div>
   </div>
 
+  <!-- Centered Lottie Loading Overlay (Icon Only) -->
+  <div id="lottie-loader-overlay" class="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/40 backdrop-blur-xs transition-all duration-300 opacity-0 pointer-events-none">
+    <!-- Lottie Animation Container (Centered Icon Only) -->
+    <div id="lottie-player-container" class="w-20 h-20 md:w-24 md:h-24 relative z-10 flex items-center justify-center transform scale-90 transition-all duration-300 filter drop-shadow-xl"></div>
+  </div>
+
   <script>
     window.STATIC_IMAGES = {
       brain: "{% static 'images/brain.webp' %}",
       highVoltage: "{% static 'images/High Voltage.webp' %}"
     };
+    window.LOTTIE_LOADING_JSON = "{% static 'animate_image/loading.json' %}";
+    window.LOTTIE_BACKGROUND_JSON = "{% static 'animate_image/background.json' %}";
   </script>
   {% block extra_scripts %}{% endblock %}
 </body>
