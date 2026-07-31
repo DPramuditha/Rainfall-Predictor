@@ -28,6 +28,8 @@ function initScrollSmoother() {
   }
 }
 
+
+
 // Preset data for quick testing scenarios
 const presets = {
   rainy: {
@@ -1807,7 +1809,7 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     }
 
-    // Refresh ScrollSmoother layout height calculation
+    // Refresh ScrollTrigger layout calculation
     window.addEventListener('load', () => {
       ScrollTrigger.refresh();
     });
