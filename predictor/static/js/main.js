@@ -58,6 +58,69 @@ const presets = {
   }
 };
 
+// Global Lottie Animation Instance & Loader Overlay Control
+let lottieAnimationInstance = null;
+
+/**
+ * Initializes the Lottie loading animation with predictor/static/animate_image/loading.json
+ */
+function initLottieLoader() {
+  const container = document.getElementById('lottie-player-container');
+  const jsonPath = window.LOTTIE_LOADING_JSON || '/static/animate_image/loading.json';
+  
+  if (container && typeof lottie !== 'undefined') {
+    container.innerHTML = '';
+    lottieAnimationInstance = lottie.loadAnimation({
+      container: container,
+      renderer: 'svg',
+      loop: true,
+      autoplay: true,
+      path: jsonPath
+    });
+  }
+}
+
+/**
+ * Shows the centered Lottie Loading Overlay (Icon Only)
+ */
+function showLottieLoader() {
+  const overlay = document.getElementById('lottie-loader-overlay');
+  const container = document.getElementById('lottie-player-container');
+
+  if (overlay) {
+    overlay.classList.remove('pointer-events-none', 'opacity-0');
+    overlay.classList.add('opacity-100');
+    if (container) {
+      container.classList.remove('scale-90');
+      container.classList.add('scale-100');
+    }
+  }
+
+  if (lottieAnimationInstance) {
+    lottieAnimationInstance.play();
+  }
+}
+
+/**
+ * Hides the centered Lottie Loading Overlay
+ */
+function hideLottieLoader() {
+  const overlay = document.getElementById('lottie-loader-overlay');
+  const container = document.getElementById('lottie-player-container');
+
+  if (overlay) {
+    overlay.classList.remove('opacity-100');
+    overlay.classList.add('opacity-0', 'pointer-events-none');
+    if (container) {
+      container.classList.remove('scale-100');
+      container.classList.add('scale-90');
+    }
+  }
+}
+
+window.showLottieLoader = showLottieLoader;
+window.hideLottieLoader = hideLottieLoader;
+
 /**
  * Loads preset values into the input form fields
  * @param {string} type - 'rainy' or 'dry'
@@ -66,15 +129,28 @@ function loadPreset(type) {
   const data = presets[type];
   if (!data) return;
 
+  showLottieLoader();
+
+  const isDark = document.documentElement.classList.contains('dark');
+  const flashColor = isDark ? '#0284c7' : '#38bdf8';
+
   for (const [key, val] of Object.entries(data)) {
     const input = document.getElementById(`id_${key}`);
     if (input) {
       input.value = val;
       if (typeof gsap !== 'undefined') {
-        gsap.fromTo(input, { backgroundColor: '#e0f2fe' }, { backgroundColor: '#f8fafc', duration: 0.8 });
+        gsap.killTweensOf(input);
+        gsap.fromTo(input,
+          { backgroundColor: flashColor },
+          { duration: 0.8, clearProps: "backgroundColor" }
+        );
       }
     }
   }
+
+  setTimeout(() => {
+    hideLottieLoader();
+  }, 450);
 }
 
 /**
@@ -134,6 +210,15 @@ function setTheme(theme, triggerToast = false) {
 
   // Update Button Icon & Text
   updateThemeUI(theme);
+
+  // Clear any residual inline styles on custom inputs so CSS dark mode rules apply cleanly
+  document.querySelectorAll('.custom-input').forEach(input => {
+    if (typeof gsap !== 'undefined') {
+      gsap.killTweensOf(input);
+    }
+    input.style.removeProperty('background-color');
+    input.style.removeProperty('color');
+  });
 
   // Re-render chart to match new light/dark theme grid & text colors
   if (typeof meteorologyChart !== 'undefined' && meteorologyChart) {
@@ -318,9 +403,10 @@ function displayResult(result) {
   const willRain = result.will_rain;
   const isDark = document.documentElement.classList.contains('dark');
 
-  // Cache prediction result and morph ambient glow colors (bg-glow-1, bg-glow-2, bg-glow-3)
+  // Cache prediction result and morph ambient glow colors & background video
   lastPredictionResult = result;
   updateAmbientGlowColors(willRain, isDark);
+  updateRainBgVideo(willRain);
 
   const heroImg = document.getElementById('verdict-hero-img');
   const bgText = document.getElementById('verdict-bg-text');
@@ -362,7 +448,7 @@ function displayResult(result) {
         pageBody.style.backgroundColor = rainyBg;
       }
     }
-    if (heroBanner) heroBanner.style.borderColor = isDark ? '#1e3a8a' : '#bfdbfe';
+    if (heroBanner) heroBanner.style.borderColor = '';
 
   } else {
     // --- Sunny / Dry Atmosphere Theme ---
@@ -399,7 +485,7 @@ function displayResult(result) {
         pageBody.style.backgroundColor = dryBg;
       }
     }
-    if (heroBanner) heroBanner.style.borderColor = isDark ? '#78350f' : '#fde68a';
+    if (heroBanner) heroBanner.style.borderColor = '';
   }
 
   // GSAP 3D Floating Levitation & Scale Pop Animation for Weather Image
@@ -772,9 +858,16 @@ function initAreaChart() {
   loadDatabasePredictions();
 }
 
-function switchChartHorizon(horizon) {
+function switchChartHorizon(horizon, skipLoader = false) {
   if (!chartDataPresets[horizon]) return;
   currentHorizon = horizon;
+
+  if (!skipLoader) {
+    showLottieLoader();
+    setTimeout(() => {
+      hideLottieLoader();
+    }, 400);
+  }
 
   // Update button active styles
   ['db', '24h', '7d', '30d'].forEach(h => {
@@ -915,6 +1008,139 @@ function initAmbientBackground() {
     });
   }
 }
+
+/**
+ * Real-Time Animated Background powered by predictor/static/animate_image/background.json
+ */
+let lottieBgInstance = null;
+
+function initLottieBackground() {
+  const bgContainer = document.getElementById('lottie-bg-container');
+  const bgCanvas = document.getElementById('lottie-bg-canvas');
+  const jsonPath = window.LOTTIE_BACKGROUND_JSON || '/static/animate_image/background.json';
+
+  // 1. Render with Lottie Web Player if applicable
+  if (bgContainer && typeof lottie !== 'undefined') {
+    try {
+      lottieBgInstance = lottie.loadAnimation({
+        container: bgContainer,
+        renderer: 'svg',
+        loop: true,
+        autoplay: true,
+        path: jsonPath
+      });
+    } catch (e) {
+      console.warn('Lottie player background renderer:', e);
+    }
+  }
+
+  // 2. Real-Time Canvas Mesh Blend Engine reading background.json color stops
+  if (bgCanvas) {
+    const ctx = bgCanvas.getContext('2d');
+    if (!ctx) return;
+
+    let width = bgCanvas.width = window.innerWidth;
+    let height = bgCanvas.height = window.innerHeight;
+
+    window.addEventListener('resize', () => {
+      width = bgCanvas.width = window.innerWidth;
+      height = bgCanvas.height = window.innerHeight;
+    });
+
+    // Default color stops extracted from background.json (#A0D8EF, #A2D7DD, #FEC346, #F3E6A8, #F2A24A)
+    let colors = ['#A0D8EF', '#A2D7DD', '#FEC346', '#F3E6A8', '#F2A24A'];
+
+    // Dynamically sync from background.json file
+    fetch(jsonPath)
+      .then(res => res.json())
+      .then(data => {
+        if (data && Array.isArray(data.stops)) {
+          const parsed = data.stops.map(s => s.hex).filter(Boolean);
+          if (parsed.length > 0) colors = parsed;
+        }
+      })
+      .catch(() => {});
+
+    // Create dynamic floating control points
+    const blobs = colors.map((color, idx) => ({
+      color: color,
+      x: Math.random() * width,
+      y: Math.random() * height,
+      vx: (Math.random() - 0.5) * 0.7,
+      vy: (Math.random() - 0.5) * 0.7,
+      radius: Math.min(width, height) * (0.35 + (idx % 3) * 0.1)
+    }));
+
+    let time = 0;
+    function renderRealtimeBackground() {
+      ctx.clearRect(0, 0, width, height);
+      time += 0.007;
+
+      blobs.forEach((blob, i) => {
+        blob.x += Math.sin(time + i) * 0.7 + blob.vx;
+        blob.y += Math.cos(time * 0.8 + i) * 0.7 + blob.vy;
+
+        if (blob.x < -blob.radius) blob.x = width + blob.radius;
+        if (blob.x > width + blob.radius) blob.x = -blob.radius;
+        if (blob.y < -blob.radius) blob.y = height + blob.radius;
+        if (blob.y > height + blob.radius) blob.y = -blob.radius;
+
+        const radGrad = ctx.createRadialGradient(
+          blob.x, blob.y, 0,
+          blob.x, blob.y, blob.radius
+        );
+        radGrad.addColorStop(0, blob.color);
+        radGrad.addColorStop(1, 'transparent');
+
+        ctx.fillStyle = radGrad;
+        ctx.beginPath();
+        ctx.arc(blob.x, blob.y, blob.radius, 0, Math.PI * 2);
+        ctx.fill();
+      });
+
+      requestAnimationFrame(renderRealtimeBackground);
+    }
+
+    renderRealtimeBackground();
+  }
+}
+
+/**
+ * Triggers background videos: Blue sky.mp4 when rainfall, Golden hour.mp4 when no rainfall
+ * @param {boolean} willRain
+ */
+function updateWeatherBgVideos(willRain) {
+  const rainVideo = document.getElementById('rain-bg-video');
+  const dryVideo = document.getElementById('dry-bg-video');
+
+  if (willRain) {
+    // Show & Play Rain Video (Blue sky.mp4), Hide Dry Video
+    if (dryVideo) {
+      dryVideo.classList.remove('opacity-45', 'dark:opacity-30');
+      dryVideo.classList.add('opacity-0', 'pointer-events-none');
+      dryVideo.pause();
+    }
+    if (rainVideo) {
+      rainVideo.classList.remove('opacity-0', 'pointer-events-none');
+      rainVideo.classList.add('opacity-45', 'dark:opacity-30');
+      rainVideo.play().catch(e => console.log('Rain video play interaction:', e));
+    }
+  } else {
+    // Show & Play Dry Video (Golden hour.mp4), Hide Rain Video
+    if (rainVideo) {
+      rainVideo.classList.remove('opacity-45', 'dark:opacity-30');
+      rainVideo.classList.add('opacity-0', 'pointer-events-none');
+      rainVideo.pause();
+    }
+    if (dryVideo) {
+      dryVideo.classList.remove('opacity-0', 'pointer-events-none');
+      dryVideo.classList.add('opacity-45', 'dark:opacity-30');
+      dryVideo.play().catch(e => console.log('Dry video play interaction:', e));
+    }
+  }
+}
+window.updateWeatherBgVideos = updateWeatherBgVideos;
+window.updateRainBgVideo = updateWeatherBgVideos;
 
 /**
  * GSAP 3D Rolling Text Animation for the main title "Rainfall Prediction Tool"
@@ -1140,7 +1366,12 @@ function initModelDropdown() {
       }
     }
 
-    // Trigger Pill Toast Notification (Bottom Right)
+    // Trigger Lottie Loader Overlay & Toast Notification
+    showLottieLoader();
+    setTimeout(() => {
+      hideLottieLoader();
+    }, 500);
+
     if (typeof window.showToastNotification === 'function') {
       if (modelKey === 'neural_network') {
         window.showToastNotification('Model Switched', 'Neural Network (Keras DL) model active', 'brain', 'nn');
@@ -1153,10 +1384,156 @@ function initModelDropdown() {
   };
 }
 
+// --- Notification Center Functions ---
+let notificationHistory = [];
+let notifIdCounter = 0;
+
+function getRelativeTime(timestamp) {
+  const diff = Math.floor((Date.now() - timestamp) / 1000);
+  if (diff < 60) return 'Just now';
+  if (diff < 3600) return Math.floor(diff / 60) + 'm ago';
+  if (diff < 86400) return Math.floor(diff / 3600) + 'h ago';
+  return Math.floor(diff / 86400) + 'd ago';
+}
+
+function updateNotifBadge() {
+  const badge = document.getElementById('notif-badge');
+  const panelCount = document.getElementById('notif-center-count');
+  const count = notificationHistory.length;
+  
+  if (badge) {
+    if (count > 0) {
+      badge.innerHTML = `<span class="t-badge-dot">${count}</span>`;
+      badge.classList.remove('hidden');
+    } else {
+      badge.classList.add('hidden');
+    }
+  }
+  
+  if (panelCount) {
+    panelCount.innerText = count;
+  }
+}
+
+window.addNotification = function(title, desc, icon = 'highVoltage', type = 'info') {
+  const id = 'notif-' + (++notifIdCounter);
+  const timestamp = Date.now();
+  
+  notificationHistory.unshift({ id, title, desc, icon, type, timestamp });
+  updateNotifBadge();
+  
+  const list = document.getElementById('notif-center-list');
+  const emptyState = document.getElementById('notif-empty-state');
+  
+  if (emptyState && !emptyState.classList.contains('hidden')) {
+    emptyState.classList.add('hidden');
+  }
+  
+  const brainImg = window.STATIC_IMAGES?.brain || '';
+  const hvImg = window.STATIC_IMAGES?.highVoltage || '';
+  
+  let iconHtml = '';
+  if (type === 'nn' || icon === 'brain') iconHtml = `<img src="${brainImg}" alt="NN" class="w-4 h-4 object-contain">`;
+  else if (type === 'info' || type === 'xgboost' || icon === 'highVoltage') iconHtml = `<img src="${hvImg}" alt="XGB" class="w-4 h-4 object-contain">`;
+  else iconHtml = `<span class="text-sm">${icon}</span>`;
+  
+  let color = 'emerald';
+  if (type === 'rain') color = 'sky';
+  else if (type === 'norain') color = 'amber';
+  else if (type === 'nn') color = 'indigo';
+  
+  const notifItem = document.createElement('div');
+  notifItem.id = id;
+  notifItem.className = `notif-item flex items-start space-x-3 px-3 py-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-white/5 transition-colors group`;
+  notifItem.innerHTML = `
+    <div class="w-8 h-8 rounded-full bg-${color}-500/20 border border-${color}-400/30 flex items-center justify-center shrink-0 mt-0.5">
+      ${iconHtml}
+    </div>
+    <div class="flex-1 min-w-0">
+      <div class="flex items-center justify-between">
+        <span class="font-outfit font-bold text-xs text-slate-800 dark:text-white truncate">${title}</span>
+        <span class="text-[10px] text-slate-400 dark:text-slate-500 shrink-0 ml-2 notif-time" data-ts="${timestamp}">Just now</span>
+      </div>
+      <p class="text-[11px] text-slate-500 dark:text-slate-400 leading-tight mt-0.5 truncate">${desc}</p>
+    </div>
+  `;
+  
+  if (list) {
+    list.insertBefore(notifItem, list.firstChild);
+    
+    if (typeof gsap !== 'undefined') {
+      gsap.fromTo(notifItem, 
+        { y: 20, autoAlpha: 0 },
+        { y: 0, autoAlpha: 1, duration: 0.4, ease: 'back.out(1.5)' }
+      );
+    }
+  }
+};
+
+window.toggleNotifCenter = function() {
+  const panel = document.getElementById('notif-center-panel');
+  if (!panel) return;
+  
+  const isHidden = panel.classList.contains('hidden');
+  const bellIcon = document.getElementById('bell-icon');
+  
+  if (isHidden) {
+    panel.classList.remove('hidden');
+    document.querySelectorAll('.notif-time').forEach(el => {
+      el.innerText = getRelativeTime(parseInt(el.getAttribute('data-ts')));
+    });
+    
+    if (typeof gsap !== 'undefined') {
+      gsap.fromTo(panel,
+        { scale: 0.92, y: -15, autoAlpha: 0 },
+        { scale: 1, y: 0, autoAlpha: 1, duration: 0.4, ease: 'back.out(1.7)' }
+      );
+      
+      if (bellIcon) {
+        gsap.fromTo(bellIcon,
+          { rotation: -15 },
+          { rotation: 0, duration: 0.5, ease: 'elastic.out(1, 0.3)' }
+        );
+      }
+    }
+  } else {
+    if (typeof gsap !== 'undefined') {
+      gsap.to(panel, {
+        scale: 0.92, y: -10, autoAlpha: 0, duration: 0.25, ease: 'power2.in',
+        onComplete: () => panel.classList.add('hidden')
+      });
+    } else {
+      panel.classList.add('hidden');
+    }
+  }
+};
+
+window.clearAllNotifications = function() {
+  notificationHistory = [];
+  updateNotifBadge();
+  
+  const listItems = document.querySelectorAll('.notif-item');
+  const emptyState = document.getElementById('notif-empty-state');
+  
+  if (listItems.length > 0 && typeof gsap !== 'undefined') {
+    gsap.to(listItems, {
+      autoAlpha: 0, x: 20, stagger: 0.05, duration: 0.3,
+      onComplete: () => {
+        listItems.forEach(el => el.remove());
+        if (emptyState) emptyState.classList.remove('hidden');
+      }
+    });
+  } else {
+    listItems.forEach(el => el.remove());
+    if (emptyState) emptyState.classList.remove('hidden');
+  }
+};
+
 // --- Fixed GSAP Pill Toast Notification Functions (Bottom Right) ---
 let toastTimeout = null;
 
 window.showToastNotification = function(title, desc, icon = 'highVoltage', type = 'info') {
+  window.addNotification(title, desc, icon, type);
   const toastPill = document.getElementById('toast-pill');
   const toastTitle = document.getElementById('toast-title');
   const toastDesc = document.getElementById('toast-desc');
@@ -1238,12 +1615,24 @@ document.addEventListener('DOMContentLoaded', () => {
   const initialTheme = localStorage.getItem('theme') || (document.documentElement.classList.contains('dark') ? 'dark' : 'light');
   updateThemeUI(initialTheme);
 
-  // Initialize GSAP ScrollSmoother, Ambient Background, Rolling Title, Model Dropdown & Area Chart
+  // Initialize GSAP ScrollSmoother, Ambient Background, Rolling Title, Model Dropdown, Area Chart, Lottie Loader & Lottie Background
   initScrollSmoother();
   initAmbientBackground();
+  initLottieBackground();
   initRollingTitleAnimation();
   initModelDropdown();
   initAreaChart();
+  initLottieLoader();
+
+  // Sync background video if initial page load has a prediction result
+  const verdictBanner = document.getElementById('verdict-banner');
+  if (verdictBanner) {
+    if (verdictBanner.classList.contains('badge-rain')) {
+      updateWeatherBgVideos(true);
+    } else if (verdictBanner.classList.contains('badge-norain')) {
+      updateWeatherBgVideos(false);
+    }
+  }
 
   // GSAP Initial Entrance Animations with clearProps to prevent residual style locks
   if (typeof gsap !== 'undefined') {
@@ -1458,27 +1847,22 @@ document.addEventListener('DOMContentLoaded', () => {
 
     notifBtn.addEventListener('click', (e) => {
       e.stopPropagation();
-      const isHidden = notifDropdown.classList.contains('hidden');
-
-      if (isHidden) {
-        notifDropdown.classList.remove('hidden');
-        if (typeof gsap !== 'undefined') {
-          gsap.fromTo(notifDropdown, 
-            { opacity: 0, scale: 0.85, y: -10 }, 
-            { opacity: 1, scale: 1, y: 0, duration: 0.35, ease: 'back.out(1.7)' }
-          );
-        }
-      } else {
-        notifDropdown.classList.add('hidden');
-      }
+      window.toggleNotifCenter();
     });
 
     document.addEventListener('click', (e) => {
-      if (notifDropdown && !notifDropdown.contains(e.target) && !notifBtn.contains(e.target)) {
-        notifDropdown.classList.add('hidden');
+      const panel = document.getElementById('notif-center-inner');
+      if (panel && !panel.contains(e.target) && !notifBtn.contains(e.target)) {
+        const panelContainer = document.getElementById('notif-center-panel');
+        if (panelContainer && !panelContainer.classList.contains('hidden')) {
+          window.toggleNotifCenter();
+        }
       }
     });
   }
+
+  // Initial System Ready Notification
+  window.addNotification('System Ready', 'All AI models loaded and operational', '🚀', 'info');
 
   // Handle AJAX Form Submission
   const form = document.getElementById('prediction-form');
@@ -1490,10 +1874,11 @@ document.addEventListener('DOMContentLoaded', () => {
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
 
-      // UI Loading state
+      // UI Loading state & Centered Lottie Loader Modal
       btnText.innerText = 'Calculating...';
       btnSpinner.classList.remove('hidden');
       submitBtn.disabled = true;
+      showLottieLoader();
 
       const formData = new FormData(form);
 
@@ -1521,6 +1906,9 @@ document.addEventListener('DOMContentLoaded', () => {
         btnText.innerText = 'Predict Rainfall';
         btnSpinner.classList.add('hidden');
         submitBtn.disabled = false;
+        setTimeout(() => {
+          hideLottieLoader();
+        }, 400);
       }
     });
   }

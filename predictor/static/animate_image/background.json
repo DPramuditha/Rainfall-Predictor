@@ -1,0 +1,121 @@
+{
+  "name": "Untitled blend",
+  "type": "flow",
+  "profile": "sRGB",
+  "dividers": [
+    0.2,
+    0.4,
+    0.6,
+    0.8
+  ],
+  "soften": 0,
+  "noise": 6,
+  "speed": 30,
+  "stops": [
+    {
+      "name": "SKY",
+      "hex": "#A0D8EF",
+      "rgb": [
+        160,
+        216,
+        239
+      ],
+      "oklch": [
+        0.8515,
+        0.0657,
+        225.2
+      ],
+      "cmyk": [
+        33,
+        10,
+        0,
+        6
+      ],
+      "position": 0.1
+    },
+    {
+      "name": "GLIMPSE OF INDIGO",
+      "hex": "#A2D7DD",
+      "rgb": [
+        162,
+        215,
+        221
+      ],
+      "oklch": [
+        0.8445,
+        0.0552,
+        204.8
+      ],
+      "cmyk": [
+        27,
+        3,
+        0,
+        13
+      ],
+      "position": 0.3
+    },
+    {
+      "name": "PERSIMMON RED",
+      "hex": "#FEC346",
+      "rgb": [
+        254,
+        195,
+        70
+      ],
+      "oklch": [
+        0.8495,
+        0.1512,
+        82.4
+      ],
+      "cmyk": [
+        0,
+        23,
+        72,
+        0
+      ],
+      "position": 0.5
+    },
+    {
+      "name": "HONEY MIST",
+      "hex": "#F3E6A8",
+      "rgb": [
+        243,
+        230,
+        168
+      ],
+      "oklch": [
+        0.9208,
+        0.0805,
+        97.7
+      ],
+      "cmyk": [
+        0,
+        5,
+        31,
+        5
+      ],
+      "position": 0.7
+    },
+    {
+      "name": "PERSIMMON RED",
+      "hex": "#F2A24A",
+      "rgb": [
+        242,
+        162,
+        74
+      ],
+      "oklch": [
+        0.7756,
+        0.1393,
+        65.5
+      ],
+      "cmyk": [
+        0,
+        33,
+        69,
+        5
+      ],
+      "position": 0.9
+    }
+  ]
+}
