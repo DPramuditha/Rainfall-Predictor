@@ -49,7 +49,3 @@ Thumbs.db
 
 # Environment Variables
 .env
-
-# Jupyter Notebook
-.ipynb_checkpoints
-models/Binary_Prediction_with_Rainfall_Dataset.ipynb
