@@ -42,7 +42,7 @@ def _call_fastapi_predict(parsed_data: dict, selected_model: str) -> tuple[dict 
 def get_predictions_api(request):
     """
     Returns all saved predictions from the database in JSON format.
-    Used by Shadcn Interactive Area Chart.
+    Used by Shadcn Interactive Area Chart and Database Records Modal.
     """
     predictions = RainfallPrediction.objects.all().order_by('created_at')[:100]
     data = []
@@ -74,6 +74,36 @@ def get_predictions_api(request):
         'count': len(data),
         'predictions': data
     })
+
+def delete_prediction_api(request, pk=None):
+    """
+    Deletes a specific prediction or clears all predictions if pk is None and action='clear_all'.
+    """
+    if request.method in ['POST', 'DELETE']:
+        if pk:
+            try:
+                item = RainfallPrediction.objects.get(pk=pk)
+                item.delete()
+                return JsonResponse({'success': True, 'message': f'Record #{pk} deleted successfully.'})
+            except RainfallPrediction.DoesNotExist:
+                return JsonResponse({'success': False, 'error': f'Record #{pk} not found.'}, status=404)
+        else:
+            try:
+                body_data = {}
+                if request.body:
+                    try:
+                        body_data = json.loads(request.body)
+                    except Exception:
+                        pass
+                action = body_data.get('action') or request.POST.get('action')
+                if action == 'clear_all':
+                    count, _ = RainfallPrediction.objects.all().delete()
+                    return JsonResponse({'success': True, 'message': f'All database records ({count}) cleared successfully.'})
+                return JsonResponse({'success': False, 'error': 'Invalid action'}, status=400)
+            except Exception as e:
+                return JsonResponse({'success': False, 'error': str(e)}, status=400)
+    return JsonResponse({'success': False, 'error': 'Method not allowed'}, status=405)
+
 
 def index(request):
     """
