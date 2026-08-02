@@ -768,10 +768,19 @@ async function loadDatabasePredictions() {
     const json = await response.json();
     if (json.success && Array.isArray(json.predictions)) {
       dbPredictionsList = json.predictions;
+      modalDbRecords = json.predictions;
       updateDbChartPreset(dbPredictionsList);
+      updateDbFabCount(json.predictions.length);
     }
   } catch (err) {
     console.warn("Could not load stored database predictions:", err);
+  }
+}
+
+function updateDbFabCount(count) {
+  const badge = document.getElementById('db-fab-count');
+  if (badge) {
+    badge.innerText = count || 0;
   }
 }
 
@@ -986,6 +995,7 @@ function updateChartFromPrediction(result) {
 
   dbPredictionsList.push(newRecord);
   updateDbChartPreset(dbPredictionsList);
+  updateDbFabCount(dbPredictionsList.length);
   switchChartHorizon('db');
 }
 
@@ -1973,4 +1983,236 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
   }
+
+  // Load database records for FAB counter on page load
+  loadDatabasePredictions();
 });
+
+// --- Stored Database Predictions Modal Logic ---
+let modalDbRecords = [];
+let currentDbFilter = 'all';
+
+async function openDatabaseModal() {
+  const modal = document.getElementById('database-modal');
+  const modalCard = document.getElementById('db-modal-card');
+  if (!modal || !modalCard) return;
+
+  modal.classList.remove('hidden', 'pointer-events-none', 'opacity-0');
+  modal.classList.add('opacity-100');
+  modalCard.classList.remove('scale-95');
+  modalCard.classList.add('scale-100');
+
+  if (typeof gsap !== 'undefined') {
+    gsap.fromTo(modalCard, { scale: 0.9, opacity: 0, y: 20 }, { scale: 1, opacity: 1, y: 0, duration: 0.35, ease: 'back.out(1.2)' });
+  }
+
+  await loadModalDatabaseRecords();
+}
+
+function closeDatabaseModal() {
+  const modal = document.getElementById('database-modal');
+  const modalCard = document.getElementById('db-modal-card');
+  if (!modal || !modalCard) return;
+
+  if (typeof gsap !== 'undefined') {
+    gsap.to(modalCard, { scale: 0.95, opacity: 0, y: 15, duration: 0.2, onComplete: () => {
+      modal.classList.add('opacity-0', 'pointer-events-none', 'hidden');
+      modalCard.classList.remove('scale-100');
+      modalCard.classList.add('scale-95');
+    }});
+  } else {
+    modal.classList.add('opacity-0', 'pointer-events-none', 'hidden');
+  }
+}
+
+async function loadModalDatabaseRecords() {
+  const body = document.getElementById('db-modal-body');
+  if (!body) return;
+
+  body.innerHTML = `
+    <div class="py-12 text-center text-slate-400">
+      <div class="inline-block animate-spin w-6 h-6 border-2 border-sky-500 border-t-transparent rounded-full mb-2"></div>
+      <p class="text-xs font-semibold">Loading stored database records...</p>
+    </div>
+  `;
+
+  try {
+    const apiEndpoint = window.location.origin + '/api/predictions/';
+    const response = await fetch(apiEndpoint);
+    const json = await response.json();
+
+    if (json.success && Array.isArray(json.predictions)) {
+      modalDbRecords = json.predictions;
+      dbPredictionsList = json.predictions;
+      updateDbChartPreset(dbPredictionsList);
+      updateDbFabCount(json.predictions.length);
+      renderDbModalContent();
+    } else {
+      body.innerHTML = `<div class="py-8 text-center text-rose-500 text-xs font-semibold">Failed to fetch database records.</div>`;
+    }
+  } catch (err) {
+    body.innerHTML = `<div class="py-8 text-center text-rose-500 text-xs font-semibold">Error connecting to database endpoint.</div>`;
+  }
+}
+
+function setDbFilter(filter) {
+  currentDbFilter = filter;
+  ['all', 'rain', 'dry'].forEach(f => {
+    const btn = document.getElementById(`db-filter-${f}`);
+    if (btn) {
+      if (f === filter) {
+        btn.className = 'px-3 py-1 rounded-lg font-bold bg-white dark:bg-slate-900 text-sky-600 dark:text-sky-400 shadow-2xs';
+      } else {
+        btn.className = 'px-3 py-1 rounded-lg font-medium text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white';
+      }
+    }
+  });
+  renderDbModalContent();
+}
+
+function filterDbModalRecords() {
+  renderDbModalContent();
+}
+
+function renderDbModalContent() {
+  const body = document.getElementById('db-modal-body');
+  const searchInput = document.getElementById('db-search-input');
+  const query = searchInput ? searchInput.value.toLowerCase().trim() : '';
+
+  if (!body) return;
+
+  const totalCount = modalDbRecords.length;
+  const rainCount = modalDbRecords.filter(r => r.will_rain).length;
+  const dryCount = totalCount - rainCount;
+
+  const totalBadge = document.getElementById('db-modal-total-badge');
+  const countAll = document.getElementById('db-count-all');
+  const countRain = document.getElementById('db-count-rain');
+  const countDry = document.getElementById('db-count-dry');
+
+  if (totalBadge) totalBadge.innerText = `${totalCount} Records`;
+  if (countAll) countAll.innerText = totalCount;
+  if (countRain) countRain.innerText = rainCount;
+  if (countDry) countDry.innerText = dryCount;
+
+  let filtered = modalDbRecords.filter(item => {
+    if (currentDbFilter === 'rain' && !item.will_rain) return false;
+    if (currentDbFilter === 'dry' && item.will_rain) return false;
+
+    if (query) {
+      const searchStr = `${item.id} ${item.model_display_name} ${item.created_at} ${item.temparature} ${item.humidity} ${item.pressure} ${item.rain_probability}`.toLowerCase();
+      if (!searchStr.includes(query)) return false;
+    }
+    return true;
+  });
+
+  if (filtered.length === 0) {
+    body.innerHTML = `
+      <div class="py-12 text-center text-slate-400 dark:text-slate-500 font-nunito">
+        <div class="text-4xl mb-3">🗄️</div>
+        <p class="font-nunito font-bold text-sm text-slate-700 dark:text-slate-300">No database records found</p>
+        <p class="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-sm mx-auto font-nunito">
+          ${totalCount === 0 ? 'No predictions have been saved into the database yet. Fill the form and click "Predict Rainfall"!' : 'No records match your search query or selected filter.'}
+        </p>
+      </div>
+    `;
+    return;
+  }
+
+  let html = `<div class="space-y-4 font-nunito">`;
+  const sortedRecords = [...filtered].reverse();
+
+  sortedRecords.forEach(item => {
+    const isRain = item.will_rain;
+    const rainProb = Math.round(item.rain_probability);
+    
+    // Choose 3D Result Icon based on prediction result
+    const resultIcon = isRain
+      ? (window.STATIC_IMAGES?.cloudRain || '/static/images/Cloud With Lightning And Rain.webp')
+      : (window.STATIC_IMAGES?.sunCloud || '/static/images/Sun Behind Cloud.webp');
+    
+    // Choose Video Background based on prediction result
+    const videoBgSrc = isRain
+      ? (window.STATIC_IMAGES?.blueSkyVid || '/static/animate_image/Blue sky.mp4')
+      : (window.STATIC_IMAGES?.goldenHourVid || '/static/animate_image/Golden hour.mp4');
+
+    const badgeStyle = isRain
+      ? 'bg-sky-500/10 text-sky-700 dark:text-sky-300 border-sky-300 dark:border-sky-800'
+      : 'bg-amber-500/10 text-amber-700 dark:text-amber-300 border-amber-300 dark:border-amber-800';
+
+    html += `
+      <div class="relative overflow-hidden rounded-3xl border border-slate-200/90 dark:border-slate-800 bg-white/95 dark:bg-slate-900/95 font-nunito transition-all duration-300 shadow-sm">
+        
+        <!-- Ambient Video Background for Record Card based on Result -->
+        <div class="absolute inset-0 pointer-events-none overflow-hidden opacity-20 dark:opacity-15 z-0">
+          <video src="${videoBgSrc}" autoplay loop muted playsinline class="w-full h-full object-cover filter blur-[2px]"></video>
+          <div class="absolute inset-0 bg-gradient-to-r ${isRain ? 'from-sky-900/40 via-slate-900/60 to-blue-900/40' : 'from-amber-900/40 via-slate-900/60 to-orange-900/40'}"></div>
+        </div>
+
+        <div class="relative z-10 p-5 font-nunito">
+          <!-- Card Top Bar: 3D Weather Icon, Title, Probability Badge -->
+          <div class="flex items-center justify-between pb-3.5 border-b border-slate-200/60 dark:border-slate-800/80">
+            <div class="flex items-center space-x-3.5">
+              <div class="w-13 h-13 rounded-2xl bg-slate-100/80 dark:bg-slate-800/80 border border-slate-200/70 dark:border-slate-700/70 flex items-center justify-center p-1 shrink-0 shadow-2xs">
+                <img src="${resultIcon}" alt="${isRain ? 'Rainfall' : 'No Rainfall'}" class="w-11 h-11 object-contain filter drop-shadow-md">
+              </div>
+
+              <div>
+                <div class="flex items-center space-x-2">
+                  <h4 class="font-nunito font-extrabold text-base text-slate-900 dark:text-white tracking-tight">
+                    ${isRain ? '🌧️ Rainfall Expected' : '☀️ No Rainfall (Dry)'}
+                  </h4>
+                  <span class="text-[11px] font-extrabold px-2.5 py-0.5 rounded-full border ${badgeStyle} font-nunito">
+                    ${isRain ? rainProb + '% Rain Prob' : (100 - rainProb) + '% Dry Confidence'}
+                  </span>
+                </div>
+                <p class="text-xs text-slate-500 dark:text-slate-400 font-nunito font-semibold mt-0.5">
+                  Record #${item.id} • ${item.created_at || 'Just now'} • ${item.model_display_name || 'XGBoost ML Model'}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Parameter Values Grid in Nunito Font -->
+          <div class="grid grid-cols-3 sm:grid-cols-6 gap-2.5 mt-3.5 font-nunito text-xs">
+            <div class="p-2.5 rounded-2xl bg-slate-50/80 dark:bg-slate-950/80 border border-slate-200/70 dark:border-slate-800/80">
+              <span class="text-slate-400 block text-[10px] font-bold uppercase tracking-wider font-nunito">Temp</span>
+              <span class="font-nunito font-extrabold text-slate-900 dark:text-white text-sm">${item.temparature}°C</span>
+            </div>
+            <div class="p-2.5 rounded-2xl bg-slate-50/80 dark:bg-slate-950/80 border border-slate-200/70 dark:border-slate-800/80">
+              <span class="text-slate-400 block text-[10px] font-bold uppercase tracking-wider font-nunito">Humidity</span>
+              <span class="font-nunito font-extrabold text-slate-900 dark:text-white text-sm">${item.humidity}%</span>
+            </div>
+            <div class="p-2.5 rounded-2xl bg-slate-50/80 dark:bg-slate-950/80 border border-slate-200/70 dark:border-slate-800/80">
+              <span class="text-slate-400 block text-[10px] font-bold uppercase tracking-wider font-nunito">Pressure</span>
+              <span class="font-nunito font-extrabold text-slate-900 dark:text-white text-sm">${item.pressure} hPa</span>
+            </div>
+            <div class="p-2.5 rounded-2xl bg-slate-50/80 dark:bg-slate-950/80 border border-slate-200/70 dark:border-slate-800/80">
+              <span class="text-slate-400 block text-[10px] font-bold uppercase tracking-wider font-nunito">Cloud Cover</span>
+              <span class="font-nunito font-extrabold text-slate-900 dark:text-white text-sm">${item.cloud}%</span>
+            </div>
+            <div class="p-2.5 rounded-2xl bg-slate-50/80 dark:bg-slate-950/80 border border-slate-200/70 dark:border-slate-800/80">
+              <span class="text-slate-400 block text-[10px] font-bold uppercase tracking-wider font-nunito">Dew Point</span>
+              <span class="font-nunito font-extrabold text-slate-900 dark:text-white text-sm">${item.dewpoint}°C</span>
+            </div>
+            <div class="p-2.5 rounded-2xl bg-slate-50/80 dark:bg-slate-950/80 border border-slate-200/70 dark:border-slate-800/80">
+              <span class="text-slate-400 block text-[10px] font-bold uppercase tracking-wider font-nunito">Wind Speed</span>
+              <span class="font-nunito font-extrabold text-slate-900 dark:text-white text-sm">${item.windspeed} km/h</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    `;
+  });
+
+  html += `</div>`;
+  body.innerHTML = html;
+}
+
+window.openDatabaseModal = openDatabaseModal;
+window.closeDatabaseModal = closeDatabaseModal;
+window.loadModalDatabaseRecords = loadModalDatabaseRecords;
+window.setDbFilter = setDbFilter;
+window.filterDbModalRecords = filterDbModalRecords;
+

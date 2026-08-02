@@ -352,6 +352,97 @@
     </div>
   </div>
 
+  <!-- Floating Database Action Button (Fixed Left Bottom Corner) -->
+  <div id="db-fab-container" class="fixed bottom-6 left-6 z-40 flex items-center">
+    <button id="db-modal-open-btn" type="button" onclick="openDatabaseModal()" aria-label="View Stored Database Predictions" title="View Stored Database Records" class="relative flex items-center justify-center w-13 h-13 md:w-14 md:h-14 rounded-full bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 border border-slate-200 dark:border-slate-800 cursor-pointer">
+      <!-- SVG Database Icon requested by user -->
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6 text-sky-600 dark:text-sky-400">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M20.25 6.375c0 2.278-3.694 4.125-8.25 4.125S3.75 8.653 3.75 6.375m16.5 0c0-2.278-3.694-4.125-8.25-4.125S3.75 4.097 3.75 6.375m16.5 0v11.25c0 2.278-3.694 4.125-8.25 4.125s-8.25-1.847-8.25-4.125V6.375m16.5 0v3.75m-16.5-3.75v3.75m16.5 0v3.75C20.25 16.153 16.556 18 12 18s-8.25-1.847-8.25-4.125v-3.75m16.5 0c0 2.278-3.694 4.125-8.25 4.125s-8.25-1.847-8.25-4.125" />
+      </svg>
+
+      <!-- Live DB Record Count Badge -->
+      <span id="db-fab-count" class="absolute -top-1 -right-1 flex h-5 min-w-[20px] px-1 items-center justify-center rounded-full bg-sky-600 text-white font-outfit text-[10px] font-extrabold border-2 border-white dark:border-slate-900">
+        0
+      </span>
+    </button>
+  </div>
+
+  <!-- Database Stored Data Popup Modal -->
+  <div id="database-modal" class="fixed inset-0 z-[90] hidden flex items-center justify-center p-4 md:p-6 bg-slate-950/60 backdrop-blur-md transition-all duration-300 opacity-0 pointer-events-none font-nunito">
+    <div id="db-modal-card" class="w-full max-w-4xl max-h-[85vh] bg-white dark:bg-slate-900 rounded-3xl shadow-2xl border border-slate-200/90 dark:border-slate-800 flex flex-col overflow-hidden transform scale-95 transition-all duration-300 font-nunito">
+      
+      <!-- Modal Header -->
+      <div class="px-6 py-5 border-b border-slate-200/80 dark:border-slate-800 flex items-center justify-between bg-slate-50/80 dark:bg-slate-900/80 backdrop-blur-md shrink-0 font-nunito">
+        <div class="flex items-center space-x-3">
+          <div class="w-10 h-10 rounded-2xl bg-sky-50 dark:bg-sky-950/80 border border-sky-200 dark:border-sky-800 flex items-center justify-center text-sky-600 dark:text-sky-400 shrink-0">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M20.25 6.375c0 2.278-3.694 4.125-8.25 4.125S3.75 8.653 3.75 6.375m16.5 0c0-2.278-3.694-4.125-8.25-4.125S3.75 4.097 3.75 6.375m16.5 0v11.25c0 2.278-3.694 4.125-8.25 4.125s-8.25-1.847-8.25-4.125V6.375m16.5 0v3.75m-16.5-3.75v3.75m16.5 0v3.75C20.25 16.153 16.556 18 12 18s-8.25-1.847-8.25-4.125v-3.75m16.5 0c0 2.278-3.694 4.125-8.25 4.125s-8.25-1.847-8.25-4.125" />
+            </svg>
+          </div>
+          <div>
+            <div class="flex items-center space-x-2">
+              <h3 class="font-nunito font-extrabold text-lg text-slate-900 dark:text-white tracking-tight">Stored Database Records</h3>
+              <span id="db-modal-total-badge" class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-sky-100 dark:bg-sky-950 text-sky-700 dark:text-sky-300 border border-sky-200 dark:border-sky-800 font-nunito">
+                0 Records
+              </span>
+            </div>
+            <p class="text-xs text-slate-500 dark:text-slate-400 font-nunito">All predictions and meteorological parameters stored in SQLite database</p>
+          </div>
+        </div>
+
+        <div class="flex items-center space-x-2">
+          <button type="button" onclick="loadModalDatabaseRecords()" title="Refresh database" class="p-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 transition-colors cursor-pointer">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
+          </button>
+          <button type="button" onclick="closeDatabaseModal()" aria-label="Close database modal" class="p-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 transition-colors cursor-pointer">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Controls Bar: Search & Filter Tabs -->
+      <div class="px-6 py-3 border-b border-slate-100 dark:border-slate-800/80 bg-slate-50/50 dark:bg-slate-900/50 flex flex-col sm:flex-row items-center justify-between gap-3 shrink-0 font-nunito">
+        <!-- Search Input -->
+        <div class="relative w-full sm:w-64">
+          <input type="text" id="db-search-input" onkeyup="filterDbModalRecords()" placeholder="Search ID, model, values..." class="w-full text-xs rounded-xl px-3 py-2 pl-8 bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-200 focus:outline-none focus:border-sky-500 font-nunito">
+          <svg class="w-3.5 h-3.5 absolute left-2.5 top-2.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg>
+        </div>
+
+        <!-- Filter Segmented Tabs -->
+        <div class="inline-flex p-1 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shrink-0 text-xs font-nunito">
+          <button type="button" id="db-filter-all" onclick="setDbFilter('all')" class="px-3 py-1 rounded-lg font-bold bg-white dark:bg-slate-900 text-sky-600 dark:text-sky-400 shadow-2xs font-nunito">
+            All (<span id="db-count-all">0</span>)
+          </button>
+          <button type="button" id="db-filter-rain" onclick="setDbFilter('rain')" class="px-3 py-1 rounded-lg font-medium text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white font-nunito">
+            🌧️ Rain (<span id="db-count-rain">0</span>)
+          </button>
+          <button type="button" id="db-filter-dry" onclick="setDbFilter('dry')" class="px-3 py-1 rounded-lg font-medium text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white font-nunito">
+            ☀️ Dry (<span id="db-count-dry">0</span>)
+          </button>
+        </div>
+      </div>
+
+      <!-- Modal Body (Scrollable List / Table) -->
+      <div id="db-modal-body" class="p-6 overflow-y-auto max-h-[55vh] flex-grow space-y-4 font-nunito">
+        <!-- Records render here dynamically -->
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="px-6 py-4 border-t border-slate-200/80 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-900/80 flex items-center justify-end shrink-0 text-xs font-nunito">
+        <button type="button" onclick="closeDatabaseModal()" class="px-5 py-2 rounded-xl font-bold bg-slate-900 dark:bg-white text-white dark:text-slate-900 hover:bg-slate-800 dark:hover:bg-slate-100 transition-all cursor-pointer shadow-xs font-nunito">
+          Close
+        </button>
+      </div>
+
+    </div>
+  </div>
+
   <!-- Centered Lottie Loading Overlay (Icon Only) -->
   <div id="lottie-loader-overlay" class="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/40 backdrop-blur-xs transition-all duration-300 opacity-0 pointer-events-none">
     <!-- Lottie Animation Container (Centered Icon Only) -->
@@ -361,7 +452,13 @@
   <script>
     window.STATIC_IMAGES = {
       brain: "{% static 'images/brain.webp' %}",
-      highVoltage: "{% static 'images/High Voltage.webp' %}"
+      highVoltage: "{% static 'images/High Voltage.webp' %}",
+      cloudRain: "{% static 'images/Cloud With Lightning And Rain.webp' %}",
+      cloudRain2: "{% static 'images/Cloud With Rain.webp' %}",
+      sunCloud: "{% static 'images/Sun Behind Cloud.webp' %}",
+      sunSmallCloud: "{% static 'images/Sun Behind Small Cloud.webp' %}",
+      blueSkyVid: "{% static 'animate_image/Blue sky.mp4' %}",
+      goldenHourVid: "{% static 'animate_image/Golden hour.mp4' %}"
     };
     window.LOTTIE_LOADING_JSON = "{% static 'animate_image/loading.json' %}";
     window.LOTTIE_BACKGROUND_JSON = "{% static 'animate_image/background.json' %}";
