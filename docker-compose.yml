@@ -1,0 +1,82 @@
+name: rainfall-predictor
+
+services:
+
+  # PostgreSQL Database Service
+ 
+  postgres:
+    image: postgres:15-alpine
+    container_name: rainfall_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${DB_NAME:-rainfall_db}
+      POSTGRES_USER: ${DB_USER:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-postgres} -d ${DB_NAME:-rainfall_db}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+
+  # FastAPI ML Microservice
+
+  fastapi:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: rainfall_fastapi
+    command: fastapi
+    restart: unless-stopped
+    ports:
+      - "8001:8001"
+    environment:
+      - USE_POSTGRES=true
+      - DB_ENGINE=postgresql
+      - DB_NAME=${DB_NAME:-rainfall_db}
+      - DB_USER=${DB_USER:-postgres}
+      - DB_PASSWORD=${DB_PASSWORD:-postgres}
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - FASTAPI_HOST=0.0.0.0
+      - FASTAPI_PORT=8001
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+
+  # Django Web Application Platform
+
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: rainfall_django
+    command: web
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      - SECRET_KEY=${SECRET_KEY:-django-insecure-docker-secret-key-change-in-prod}
+      - DEBUG=${DEBUG:-True}
+      - ALLOWED_HOSTS=*
+      - USE_POSTGRES=true
+      - DB_ENGINE=postgresql
+      - DB_NAME=${DB_NAME:-rainfall_db}
+      - DB_USER=${DB_USER:-postgres}
+      - DB_PASSWORD=${DB_PASSWORD:-postgres}
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - FASTAPI_URL=http://fastapi:8001/api/v1/predict
+    depends_on:
+      postgres:
+        condition: service_healthy
+      fastapi:
+        condition: service_started
+
+volumes:
+  postgres_data:

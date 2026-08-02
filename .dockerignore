@@ -1,0 +1,29 @@
+# Git repository files
+.git
+.gitignore
+.github
+
+# Virtual environment and local package caches
+venv/
+env/
+ENV/
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+
+# Node modules
+node_modules/
+
+# Local databases & environment files
+db.sqlite3
+.env
+.env.local
+
+# Operating system files & IDEs
+.DS_Store
+.vscode/
+.idea/
+
+# Output logs
+*.log

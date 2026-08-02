@@ -274,6 +274,30 @@ python run_fastapi.py
 
 ---
 
+### Option C: 🐳Running with Docker & Docker Compose (Recommended for Containerization)
+
+#### Using Docker Compose (Full Stack with PostgreSQL + FastAPI + Django):
+
+```bash
+# Build and launch all services in detached mode
+docker compose up --build -d
+```
+📍 **Django UI**: `http://localhost:8000/`  
+📍 **FastAPI Microservice**: `http://localhost:8001/`  
+📖 **Swagger API Docs**: `http://localhost:8001/docs`
+
+#### Using Standalone Dockerfile:
+
+```bash
+# Build Docker image
+docker build -t rainfall-predictor .
+
+# Run both Django & FastAPI in a single container
+docker run -p 8000:8000 -p 8001:8001 rainfall-predictor
+```
+
+---
+
 ## 📊 Machine Learning Models & Features
 
 ### 🌤️ Input Meteorological Features
