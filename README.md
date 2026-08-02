@@ -6,6 +6,7 @@
 
   **An Enterprise-Grade Weather Intelligence & Predictive Analytics System Powered by XGBoost, Deep Neural Networks, Django & FastAPI**
 
+  [![CI Test Suite](https://github.com/DPramuditha/Rainfall-Predictor/actions/workflows/ci.yml/badge.svg)](https://github.com/DPramuditha/Rainfall-Predictor/actions/workflows/ci.yml)
   [![Python Version](https://img.shields.io/badge/python-3.10%2B-blue.svg?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
   [![Django](https://img.shields.io/badge/Django-5.0%2B-092E20.svg?style=for-the-badge&logo=django&logoColor=white)](https://www.djangoproject.com/)
   [![FastAPI](https://img.shields.io/badge/FastAPI-0.100%2B-009688.svg?style=for-the-badge&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
@@ -19,7 +20,8 @@
   [Tech Stack](#%EF%B8%8F-tech-stack) •
   [Getting Started](#-getting-started) •
   [API Reference](#-api-reference) •
-  [ML Models](#-machine-learning-models)
+  [ML Models](#-machine-learning-models) •
+  [Testing & CI/CD](#-testing--cicd)
 
 </div>
 
@@ -39,10 +41,13 @@ The system features a **Django 5.0+ web application** offering an interactive gl
 - ⚡ **Dual Server Architecture**:
   - **Django 5.0+ Web Application**: Server-rendered UI with Tailwind CSS v4, GSAP micro-animations, and interactive charts.
   - **FastAPI Microservice**: Asynchronous REST API server running on port `8001` for microservice pipelines.
+- 🎲 **Random Weather Preset Generator**: One-click "Random Scenario" generator filling all 11 inputs with physically consistent, randomized meteorological parameters.
+- 🗄️ **Interactive Database Records Modal**: Live record counter badge, search filtering, rain/dry condition toggles, single record deletion, and bulk database clear actions.
 - 📊 **Interactive Analytics & Dashboard**: Visualize historical prediction records, confidence distributions, and meteorological feature correlations.
 - 🌡️ **11 Atmospheric Metrics**: Precision predictions based on Day of Year, Atmospheric Pressure, Temperature (Max/Min/Avg), Dew Point, Relative Humidity, Cloud Cover, Sunshine Hours, Wind Direction, and Wind Speed.
 - 🎨 **Modern Glassmorphic UI**: Styled using Tailwind CSS v4, GSAP animations, dynamic atmospheric backgrounds, and animated 3D weather icons.
 - 📝 **Automated History & Persistence**: Dual database support (SQLite3 for local dev, PostgreSQL for production) with ORM tracking for all model queries.
+- 🧪 **Comprehensive CI/CD & Automated Testing**: Integrated GitHub Actions CI pipeline running 33 automated unit and integration tests via `python run_tests.py`.
 - 📖 **Swagger & ReDoc API Docs**: Built-in interactive API playground at `/docs` and `/redoc`.
 
 ---
@@ -80,6 +85,7 @@ The system features a **Django 5.0+ web application** offering an interactive gl
 | **Front-End Styling** | [Tailwind CSS v4](https://tailwindcss.com/) | Modern utility-first CSS engine built via `@tailwindcss/cli` |
 | **UI Animations** | [GSAP 3.12+](https://greensock.com/gsap/), [Lottie Web](https://airbnb.io/lottie/) | High-performance interactive UI animations |
 | **Database** | SQLite3 / PostgreSQL | Relational storage for prediction history and model telemetry |
+| **Continuous Integration** | [GitHub Actions](https://github.com/features/actions) | Automated test suite workflow runner with PostgreSQL service |
 | **API Documentation** | OpenAPI 3.0 / Swagger UI / ReDoc | Interactive API testing documentation |
 
 ---
@@ -88,6 +94,10 @@ The system features a **Django 5.0+ web application** offering an interactive gl
 
 ```text
 rainfall_predictor/
+│
+├── .github/                              # GitHub Configuration & CI/CD Pipelines
+│   └── workflows/
+│       └── ci.yml                        # GitHub Actions automated test workflow
 │
 ├── api/                                  # FastAPI ML Microservice
 │   └── main.py                           # Async FastAPI endpoints & OpenAPI routing
@@ -99,14 +109,19 @@ rainfall_predictor/
 │
 ├── predictor/                            # Django Main Application
 │   ├── migrations/                       # Database schema migrations
+│   ├── tests/                            # Modular Automated Test Suite (33 Tests)
+│   │   ├── test_models.py                # Django ORM & RainfallPrediction tests
+│   │   ├── test_views.py                 # View controller & prediction flow tests
+│   │   ├── test_urls.py                  # URL dispatcher & route resolution tests
+│   │   ├── test_ml_model.py              # ModelLoader & feature engineering tests
+│   │   └── test_fastapi.py               # FastAPI microservice endpoint tests
 │   ├── static/
 │   │   ├── css/
 │   │   │   ├── input.css                 # Tailwind source stylesheet
 │   │   │   └── output.css                # Compiled production CSS
-│   │   └── images/
-│   │       ├── Sun Behind Rain Cloud.webp # Animated weather header icon
-│   │       ├── Cloud With Lightning And Rain.webp
-│   │       └── ...                       # Weather & UI asset suite
+│   │   ├── js/
+│   │   │   └── main.js                   # UI logic, chart rendering & presets
+│   │   └── images/                       # Animated 3D weather icons & graphics
 │   ├── templates/
 │   │   ├── base.html                     # Main layout shell with GSAP & Tailwind
 │   │   └── predictor/
@@ -127,7 +142,8 @@ rainfall_predictor/
 ├── manage.py                             # Django CLI management script
 ├── package.json                          # Node.js dependencies for Tailwind & GSAP
 ├── requirements.txt                      # Python dependency specification
-└── run_fastapi.py                        # FastAPI microservice startup runner
+├── run_fastapi.py                        # FastAPI microservice startup runner
+└── run_tests.py                          # Formatted test runner script with DB cleanup
 ```
 
 ---
@@ -325,7 +341,7 @@ python run_fastapi.py
 
 ### 2. Historical Predictions (GET)
 
-**Endpoint**: `/api/v1/predictions`  
+**Endpoint**: `/api/v1/predictions` or `/api/predictions/`  
 **Method**: `GET`
 
 #### Response Example:
@@ -351,21 +367,62 @@ python run_fastapi.py
 
 ---
 
-## 🧪 Testing
+### 3. Delete Single Prediction Record (DELETE)
 
-Run Django backend tests to verify database migrations and model loaders:
+**Endpoint**: `/api/predictions/delete/{id}/`  
+**Method**: `POST` or `DELETE`
 
-```bash
-python manage.py test
+#### Response Example:
+```json
+{
+  "success": true,
+  "message": "Prediction #1 deleted successfully."
+}
 ```
 
 ---
 
+### 4. Clear All Prediction Records (DELETE)
+
+**Endpoint**: `/api/predictions/delete/`  
+**Method**: `POST` or `DELETE`
+
+#### Response Example:
+```json
+{
+  "success": true,
+  "message": "Cleared 15 prediction records."
+}
+```
+
+---
+
+## 🧪 Testing & CI/CD
+
+### Local Test Execution
+
+Run the custom test suite runner for formatted test reports and safe PostgreSQL database cleanup:
+
+```bash
+# Recommended Custom Test Runner (Runs all 33 modular tests)
+python run_tests.py
+
+# Standard Django Test Runner
+python manage.py test
+```
+
+### GitHub Actions CI Pipeline
+
+The project includes an automated **GitHub Actions CI Workflow** (`.github/workflows/ci.yml`) triggered on pushes to `main`:
+- Provisions a **PostgreSQL 15** database container.
+- Installs Python 3.11 and dependencies.
+- Executes `python run_tests.py` with PostgreSQL test configuration.
+
+---
 
 <div align="center">
-
-  **Developed ❤️ by [Dimuthu Pramuditha](https://github.com/DPramuditha) for Machine Learning**
 
   [⬆ Back to Top](#-rainfall-predictor--analytics-platform)
 
 </div>
+
