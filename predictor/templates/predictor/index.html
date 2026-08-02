@@ -84,6 +84,9 @@
         <button type="button" onclick="loadPreset('dry')" class="text-xs font-medium bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 hover:bg-amber-100 dark:hover:bg-amber-900/80 border border-amber-200 dark:border-amber-800 px-3 py-1.5 rounded-lg transition-colors cursor-pointer">
           ☀️ Sunny Dry Scenario
         </button>
+        <button type="button" onclick="loadRandomPreset()" class="text-xs font-medium bg-violet-50 dark:bg-violet-950/60 text-violet-700 dark:text-violet-300 hover:bg-violet-100 dark:hover:bg-violet-900/80 border border-violet-200 dark:border-violet-800 px-3 py-1.5 rounded-lg transition-colors cursor-pointer">
+          🎲 Random Scenario
+        </button>
       </div>
     </div>
   </div>
@@ -313,4 +316,5 @@
 
 {% block extra_scripts %}
 <script src="{% static 'js/main.js' %}?v=17"></script>
+<script src="{% static 'js/main.js' %}?v=13"></script>
 {% endblock %}

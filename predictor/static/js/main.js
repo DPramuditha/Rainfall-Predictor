@@ -156,6 +156,65 @@ function loadPreset(type) {
 }
 
 /**
+ * Generates a random number between min and max, rounded to the given decimal places
+ */
+function randBetween(min, max, decimals = 1) {
+  const val = Math.random() * (max - min) + min;
+  const factor = Math.pow(10, decimals);
+  return Math.round(val * factor) / factor;
+}
+
+/**
+ * Loads a random meteorological scenario into the form fields.
+ * Values are constrained to realistic ranges and internally consistent
+ * (e.g. mintemp ≤ temp ≤ maxtemp, dewpoint ≤ temp).
+ */
+function loadRandomPreset() {
+  showLottieLoader();
+
+  const day = Math.floor(randBetween(1, 365, 0));
+  const pressure = randBetween(990, 1035, 1);
+  const mintemp = randBetween(-5, 25, 1);
+  const maxtemp = randBetween(mintemp + 2, mintemp + 18, 1);
+  const temparature = randBetween(mintemp, maxtemp, 1);
+  const humidity = randBetween(10, 100, 1);
+  // Dew point should be at or below current temperature
+  const dewpoint = randBetween(Math.max(-15, temparature - 20), temparature, 1);
+  const cloud = randBetween(0, 100, 1);
+  // Higher cloud cover = less sunshine (loosely correlated)
+  const maxSunshine = Math.max(0, (100 - cloud) / 100 * 14);
+  const sunshine = randBetween(0, Math.max(0.1, maxSunshine), 1);
+  const winddirection = randBetween(0, 360, 1);
+  const windspeed = randBetween(0, 65, 1);
+
+  const randomData = {
+    day, pressure, temparature, maxtemp, mintemp,
+    dewpoint, humidity, cloud, sunshine, winddirection, windspeed
+  };
+
+  const isDark = document.documentElement.classList.contains('dark');
+  const flashColor = isDark ? '#7c3aed' : '#a78bfa';
+
+  for (const [key, val] of Object.entries(randomData)) {
+    const input = document.getElementById(`id_${key}`);
+    if (input) {
+      input.value = val;
+      if (typeof gsap !== 'undefined') {
+        gsap.killTweensOf(input);
+        gsap.fromTo(input,
+          { backgroundColor: flashColor },
+          { duration: 0.8, clearProps: "backgroundColor" }
+        );
+      }
+    }
+  }
+
+  setTimeout(() => {
+    hideLottieLoader();
+  }, 450);
+}
+
+/**
  * Updates the Theme Toggle Button UI (icon and label text)
  */
 function updateThemeUI(theme) {

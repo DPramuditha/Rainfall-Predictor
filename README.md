@@ -364,7 +364,7 @@ python manage.py test
 
 <div align="center">
 
-  **Developed with ❤️ by [Dimuthu Pramuditha](https://github.com/DPramuditha) for Machine Learning**
+  **Developed ❤️ by [Dimuthu Pramuditha](https://github.com/DPramuditha) for Machine Learning**
 
   [⬆ Back to Top](#-rainfall-predictor--analytics-platform)
 
