@@ -413,10 +413,14 @@ python manage.py test
 
 ### GitHub Actions CI Pipeline
 
-The project includes an automated **GitHub Actions CI Workflow** (`.github/workflows/ci.yml`) triggered on pushes to `main`:
-- Provisions a **PostgreSQL 15** database container.
+The project includes an automated **GitHub Actions CI Workflow** ([ci.yml](file:///.github/workflows/ci.yml)) triggered on:
+- Pushes to `main` and `develop` branches
+- Pull Requests targeted at `main` and `develop` branches
+
+**Workflow Execution Steps:**
+- Provisions a **PostgreSQL 15** database container service.
 - Installs Python 3.11 and dependencies.
-- Executes `python run_tests.py` with PostgreSQL test configuration.
+- Executes `python run_tests.py` with PostgreSQL environment settings before code is merged into `main`.
 
 ---
 
